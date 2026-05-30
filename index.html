@@ -637,16 +637,6 @@ function getIngredientMutations(charId) {
   });
   return result;
 }
-function calcRate(){
-  state.rate=state.base.reduce((s,b)=>{
-    const c=CHARACTERS.find(x=>x.id===b.charId);
-    if(!c) return s;
-    const mut=getMutation(b.charId, b.slot);
-    return s + c.rate * (mut ? mut.mult : 1.0);
-  },0);
-  updateMoneyDisplays();
-}
-
 // ===== ADMIN PANEL =====
 const ADMIN_PW='TTJP';
 let adminKeyBuffer='';
