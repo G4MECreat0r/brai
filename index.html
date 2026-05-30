@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🧠 ブレインロット コレクター v2</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Zen+Dots&family=M+PLUS+Rounded+1c:wght@400;700;900&display=swap');
+:root {
+  --bg: #0d0d1a; --panel: #13132a; --card: #1a1a35; --border: #2a2a50;
+  --accent: #ff3366; --accent2: #00ffcc; --accent3: #ffcc00;
+  --text: #e0e0ff; --muted: #6060aa;
+  --common: #8888aa; --uncommon: #44cc44; --rare: #4488ff;
+  --epic: #cc44ff; --legendary: #ffaa00; --mythic: #ff3366;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans-serif;overflow:hidden;height:100vh;width:100vw;display:flex;flex-direction:column}
+.nav{display:flex;background:#0a0a18;border-bottom:2px solid var(--border);z-index:100;flex-shrink:0}
+.nav-btn{flex:1;padding:8px 2px 6px;border:none;background:none;color:var(--muted);font-size:8px;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:.2s;border-bottom:2px solid transparent;margin-bottom:-2px;position:relative}
+.nav-btn .icon{font-size:16px}
+.nav-btn.active{color:var(--accent2);border-bottom-color:var(--accent2)}
+.page{display:none;flex:1;overflow-y:auto;overflow-x:hidden;padding:10px}
+.page.active{display:flex;flex-direction:column;gap:10px}
+.money-bar{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.money-val{font-family:'Zen Dots',sans-serif;font-size:18px;color:var(--accent3)}
+.money-rate{font-size:11px;color:var(--muted)}
+.money-bar .label{font-size:11px;color:var(--muted)}
+.save-ind{font-size:9px;color:var(--accent2)}
+.base-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.base-slot{background:var(--card);border:2px dashed var(--border);border-radius:10px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.base-slot.filled{border-style:solid}
+.base-slot:hover{border-color:var(--accent2);transform:scale(1.03)}
+.base-slot svg{width:80%;height:80%}
+.base-slot .slot-name{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:7px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+.base-slot .slot-rate{position:absolute;top:2px;right:2px;font-size:7px;color:var(--accent3);font-weight:700}
+.base-slot .rarity-dot{position:absolute;top:3px;left:3px;width:6px;height:6px;border-radius:50%}
+.base-section-title{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:1px}
+.expand-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700}
+.shop-timer{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between}
+.timer-val{font-family:'Zen Dots',sans-serif;color:var(--accent2);font-size:18px}
+.shop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.shop-card{background:var(--card);border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px;border:2px solid var(--border);position:relative;overflow:hidden}
+.shop-card svg{width:70px;height:70px}
+.shop-card .char-name{font-size:11px;font-weight:700;text-align:center;line-height:1.2}
+.shop-card .char-rarity{font-size:9px;font-weight:900;letter-spacing:1px}
+.shop-card .char-rate{font-size:10px;color:var(--accent3);font-weight:700}
+.buy-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:11px;cursor:pointer;font-weight:700;font-family:'M PLUS Rounded 1c',sans-serif;width:100%;transition:.2s}
+.buy-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+.sold-badge{position:absolute;top:8px;right:8px;background:#333;color:#666;font-size:8px;padding:2px 5px;border-radius:4px}
+.inv-filter{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;flex-shrink:0}
+.inv-filter::-webkit-scrollbar{height:3px}
+.inv-filter::-webkit-scrollbar-thumb{background:var(--border)}
+.filter-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:4px 10px;font-size:10px;cursor:pointer;white-space:nowrap;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700;transition:.2s;flex-shrink:0}
+.filter-btn.active{border-color:var(--accent2);color:var(--accent2)}
+.inv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.inv-card{background:var(--card);border-radius:10px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:3px;border:1px solid var(--border);cursor:pointer;transition:.2s;position:relative}
+.inv-card:hover{border-color:var(--accent2);transform:translateY(-2px)}
+.inv-card.in-base{border-color:var(--accent3)}
+.inv-card svg{width:56px;height:56px}
+.inv-card .iname{font-size:8px;font-weight:700;text-align:center;line-height:1.2;color:var(--text)}
+.inv-card .icount{position:absolute;top:3px;right:3px;background:var(--accent);color:#fff;font-size:8px;font-weight:700;border-radius:8px;padding:0 4px;min-width:16px;text-align:center}
+.inv-card .irarity{font-size:7px;text-align:center;font-weight:900;letter-spacing:.5px}
+.index-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat-box{background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)}
+.stat-box .sv{font-family:'Zen Dots',sans-serif;font-size:18px;color:var(--accent2)}
+.stat-box .sk{font-size:10px;color:var(--muted)}
+.index-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.index-card{background:var(--card);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid var(--border);position:relative}
+.index-card.locked{opacity:.4;filter:grayscale(.8)}
+.index-card svg{width:60px;height:60px}
+.index-card .idn{font-size:9px;font-weight:700;text-align:center;line-height:1.2}
+.index-card .idr{font-size:8px;font-weight:900;letter-spacing:.5px}
+.index-card .idrate{font-size:9px;color:var(--accent3)}
+.lock-icon{position:absolute;top:4px;right:4px;font-size:12px;opacity:.6}
+.trade-section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:10px}
+.trade-title{font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;letter-spacing:1px}
+.trade-btn{background:linear-gradient(135deg,var(--accent2),#0088aa);color:#000;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:900;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;width:100%;transition:.2s}
+.recv-cand{background:var(--card);border:2px solid var(--border);border-radius:10px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:.2s}
+.recv-cand:hover{border-color:var(--accent2);transform:scale(1.04)}
+.recv-cand.selected{border-color:var(--accent2);background:#0a2a20}
+.recv-cand svg{width:50px;height:50px}
+.recv-cand .rcn{font-size:8px;text-align:center;font-weight:700;line-height:1.2}
+.recv-cand .rcr{font-size:7px;font-weight:900}
+.recv-cand .rcrate{font-size:7px;color:var(--accent3);font-weight:700}
+.cpu-trade-rates{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.rate-pill{background:var(--card);border-radius:6px;padding:4px 6px;text-align:center;border:1px solid var(--border)}
+.rate-pill .rp-label{font-size:8px;color:var(--muted)}
+.rate-pill .rp-val{font-size:11px;color:var(--accent3);font-weight:700;font-family:'Zen Dots',sans-serif}
+.fusion-section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px}
+.fusion-title{font-size:13px;font-weight:900;color:var(--accent3);margin-bottom:6px;letter-spacing:1px}
+.fusion-recipe{background:var(--card);border-radius:10px;padding:10px;border:1px solid var(--border);margin-bottom:8px}
+.fusion-ing{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--panel);border-radius:8px;padding:4px;border:1px solid var(--border);min-width:44px}
+.fusion-ing svg{width:32px;height:32px}
+.fusion-ing .fin{font-size:6px;text-align:center;line-height:1.1}
+.fusion-ing .fic{font-size:6px;color:var(--muted)}
+.fusion-result{display:flex;align-items:center;gap:8px;background:#1a1a00;border-radius:8px;padding:6px;border:1px solid var(--accent3)}
+.fusion-result svg{width:40px;height:40px}
+.fusion-result-info .frn{font-size:10px;font-weight:700}
+.fusion-result-info .frr{font-size:8px;font-weight:900}
+.fusion-result-info .frrate{font-size:9px;color:var(--accent3)}
+.fusion-btn{background:linear-gradient(135deg,var(--accent3),#cc8800);color:#000;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:900;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;transition:.2s}
+.fusion-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+.fusion-missing{font-size:9px;color:var(--accent);margin-top:4px}
+.quest-section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:10px}
+.quest-title{font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;letter-spacing:1px}
+.quest-item{background:var(--card);border-radius:10px;padding:8px 10px;border:1px solid var(--border);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.quest-item.done{border-color:var(--accent3);opacity:.7}
+.quest-icon{font-size:20px;flex-shrink:0}
+.quest-info{flex:1;min-width:0}
+.quest-name{font-size:10px;font-weight:700}
+.quest-desc{font-size:9px;color:var(--muted);margin-top:1px}
+.quest-progress{margin-top:4px;background:#1a1a35;border-radius:4px;height:5px;overflow:hidden}
+.quest-bar{height:100%;background:var(--accent2);transition:.5s}
+.quest-reward{font-size:9px;color:var(--accent3);font-weight:700;flex-shrink:0;text-align:right}
+.claim-btn{background:var(--accent3);color:#000;border:none;border-radius:6px;padding:3px 8px;font-size:9px;font-weight:700;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;flex-shrink:0;margin-left:4px}
+.achievement-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.ach-card{background:var(--card);border-radius:10px;padding:8px;border:1px solid var(--border);display:flex;gap:8px;align-items:center}
+.ach-card.unlocked{border-color:var(--accent3)}
+.ach-card.locked-ach{opacity:.5;filter:grayscale(.5)}
+.ach-icon{font-size:22px;flex-shrink:0}
+.ach-info .an{font-size:10px;font-weight:700}
+.ach-info .ad{font-size:8px;color:var(--muted);margin-top:1px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:16px;width:100%;max-width:360px;max-height:80vh;overflow-y:auto}
+.modal-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--panel);z-index:1}
+.modal-header h3{font-size:14px;font-weight:700}
+.modal-close{background:var(--accent);color:#fff;border:none;border-radius:6px;width:26px;height:26px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:14px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.modal-body svg{width:120px;height:120px}
+.modal-body .mb-name{font-size:16px;font-weight:900;text-align:center}
+.modal-body .mb-rarity{font-size:12px;font-weight:900;letter-spacing:2px}
+.modal-body .mb-rate{font-size:13px;color:var(--accent3)}
+.modal-body .mb-desc{font-size:11px;color:var(--muted);text-align:center;line-height:1.5}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.mact-btn{border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;transition:.2s}
+.mact-primary{background:var(--accent2);color:#000}
+.mact-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.mact-danger{background:var(--accent);color:#fff}
+.pick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:55vh;overflow-y:auto}
+.pick-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:.2s}
+.pick-card:hover{border-color:var(--accent2)}
+.pick-card svg{width:44px;height:44px}
+.pick-card .pcn{font-size:7px;text-align:center;line-height:1.2;font-weight:700}
+.pick-card .pcr{font-size:6px;text-align:center;font-weight:900}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:12px;font-weight:700;z-index:300;pointer-events:none;opacity:0;transition:.3s;white-space:nowrap}
+.toast.show{opacity:1}
+.r-common{color:var(--common)}.r-uncommon{color:var(--uncommon)}.r-rare{color:var(--rare)}.r-epic{color:var(--epic)}.r-legendary{color:var(--legendary)}.r-mythic{color:var(--mythic)}
+.dot-common{background:var(--common)}.dot-uncommon{background:var(--uncommon)}.dot-rare{background:var(--rare)}.dot-epic{background:var(--epic)}.dot-legendary{background:var(--legendary)}.dot-mythic{background:var(--mythic)}
+.border-common{border-color:var(--common)!important}.border-uncommon{border-color:var(--uncommon)!important}.border-rare{border-color:var(--rare)!important}.border-epic{border-color:var(--epic)!important}.border-legendary{border-color:var(--legendary)!important}.border-mythic{border-color:var(--mythic)!important}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes mythic-glow{0%,100%{box-shadow:0 0 10px #ff3366,0 0 20px #ff3366}50%{box-shadow:0 0 20px #ff3366,0 0 40px #ff3366,0 0 60px #ff99aa}}
+.border-mythic{animation:mythic-glow 2s ease-in-out infinite!important}
+.quest-badge{position:absolute;top:2px;right:2px;background:var(--accent);color:#fff;font-size:7px;font-weight:700;border-radius:8px;padding:0 4px;min-width:14px;text-align:center;line-height:14px}
+</style>
+</head>
+<body>
+<div class="nav">
+  <button class="nav-btn active" onclick="showPage('base')" id="nav-base"><span class="icon">🏰</span>基地</button>
+  <button class="nav-btn" onclick="showPage('shop')" id="nav-shop"><span class="icon">🛒</span>ショップ</button>
+  <button class="nav-btn" onclick="showPage('inventory')" id="nav-inventory"><span class="icon">🎒</span>所持</button>
+  <button class="nav-btn" onclick="showPage('trade')" id="nav-trade"><span class="icon">🔄</span>トレード</button>
+  <button class="nav-btn" onclick="showPage('fusion')" id="nav-fusion"><span class="icon">⚗️</span>融合</button>
+  <button class="nav-btn" onclick="showPage('quest')" id="nav-quest"><span class="icon">📋</span>クエスト</button>
+  <button class="nav-btn" onclick="showPage('index')" id="nav-index"><span class="icon">📖</span>図鑑</button>
+  <button class="nav-btn" onclick="adminPromptPassword(openAdminPanel)" id="nav-admin"><span class="icon">🔐</span>管理</button>
+</div>
+<div class="page active" id="page-base">
+  <div class="money-bar">
+    <div><div class="label">💰 所持金</div><div class="money-val" id="money-display">$0</div></div>
+    <div style="text-align:center"><div class="save-ind" id="save-indicator">💾 セーブ済</div></div>
+    <div style="text-align:right"><div class="label">収入</div><div class="money-rate" id="rate-display">$0/s</div></div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <div class="base-section-title">🏰 基地スロット</div>
+    <div style="font-size:11px;color:var(--muted)" id="base-slot-count">0/8</div>
+  </div>
+  <div class="base-grid" id="base-grid"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+    <div style="font-size:11px;color:var(--muted)">スロット拡張</div>
+    <button class="expand-btn" id="expand-btn" onclick="expandBase()">＋スロット追加</button>
+  </div>
+</div>
+<div class="page" id="page-shop">
+  <div class="money-bar">
+    <div><div class="label">💰 所持金</div><div class="money-val" id="money-display2">$0</div></div>
+    <div style="text-align:right"><div class="label">収入</div><div class="money-rate" id="rate-display2">$0/s</div></div>
+  </div>
+  <div class="shop-timer">
+    <div><div style="font-size:10px;color:var(--muted)">次のリフレッシュ</div><div class="timer-val" id="shop-timer">5:00</div></div>
+    <div style="font-size:11px;color:var(--muted)">ランダム5体出現</div>
+  </div>
+  <div class="shop-grid" id="shop-grid"></div>
+</div>
+<div class="page" id="page-inventory">
+  <div class="money-bar">
+    <div><div class="label">💰 所持金</div><div class="money-val" id="money-display3">$0</div></div>
+  </div>
+  <div class="inv-filter" id="inv-filter">
+    <button class="filter-btn active" onclick="filterInv('all',this)">すべて</button>
+    <button class="filter-btn" onclick="filterInv('common',this)">コモン</button>
+    <button class="filter-btn" onclick="filterInv('uncommon',this)">アンコモン</button>
+    <button class="filter-btn" onclick="filterInv('rare',this)">レア</button>
+    <button class="filter-btn" onclick="filterInv('epic',this)">エピック</button>
+    <button class="filter-btn" onclick="filterInv('legendary',this)">レジェンダリー</button>
+    <button class="filter-btn" onclick="filterInv('mythic',this)">ミシック</button>
+  </div>
+  <div class="inv-grid" id="inv-grid"></div>
+</div>
+<div class="page" id="page-trade">
+  <div class="money-bar">
+    <div><div class="label">💰 所持金</div><div class="money-val" id="money-display4">$0</div></div>
+  </div>
+  <div class="trade-section">
+    <div class="trade-title">🤖 CPUトレード</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:8px">CPUの提案に応答する — 収益差を確認してから決めよう！</div>
+    <div id="cpu-trade-area"><div style="color:var(--muted);font-size:11px;text-align:center;padding:10px">ボタンを押してオファーを生成</div></div>
+    <button class="trade-btn" style="margin-top:8px" onclick="generateCPUTrade()">🎲 新しいオファーを生成</button>
+  </div>
+  <div class="trade-section">
+    <div class="trade-title">🔄 手動トレード</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:8px">渡すキャラを選ぶ → もらえる候補（レートも表示！）</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div>
+        <div style="font-size:10px;color:var(--muted);font-weight:700">📤 渡すキャラ</div>
+        <div style="margin-top:6px" id="offer-slots-container"></div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);font-weight:700">📥 もらうキャラ候補</div>
+        <div style="font-size:9px;color:var(--muted);margin-bottom:4px" id="recv-hint">渡すキャラを選ぶと候補が出る</div>
+        <div id="recv-candidates-area"></div>
+      </div>
+    </div>
+    <button class="trade-btn" style="margin-top:10px" onclick="executePlayerTrade()">✅ トレード実行</button>
+  </div>
+</div>
+<div class="page" id="page-fusion">
+  <div class="money-bar">
+    <div><div class="label">💰 所持金</div><div class="money-val" id="money-display5">$0</div></div>
+    <div style="font-size:10px;color:var(--muted)">⚗️ キャラを合成してミシックを召喚！</div>
+  </div>
+  <div class="fusion-section">
+    <div class="fusion-title">✨ ミシック召喚レシピ</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:10px">レジェンダリーを組み合わせて最高レアを入手！</div>
+    <div id="fusion-recipes"></div>
+  </div>
+  <div class="fusion-section">
+    <div class="fusion-title">⬆️ レアリティアップ融合</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:10px">同じキャラ3体 → 1段階上のランダムキャラ</div>
+    <div id="upgrade-fusion"></div>
+  </div>
+</div>
+<div class="page" id="page-quest">
+  <div class="money-bar">
+    <div><div class="label">💰 所持金</div><div class="money-val" id="money-display6">$0</div></div>
+  </div>
+  <div class="quest-section">
+    <div class="quest-title">📋 クエスト</div>
+    <div id="daily-quests"></div>
+  </div>
+  <div class="quest-section">
+    <div class="quest-title">🏆 実績</div>
+    <div class="achievement-grid" id="achievements"></div>
+  </div>
+</div>
+<div class="page" id="page-index">
+  <div class="index-stats" id="index-stats"></div>
+  <div style="font-size:12px;color:var(--muted);font-weight:700;letter-spacing:1px">📖 キャラクター図鑑</div>
+  <div class="index-grid" id="index-grid"></div>
+  <div style="font-size:12px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-top:4px">🧬 変異図鑑</div>
+  <div style="font-size:10px;color:var(--muted);margin-bottom:4px">発見した変異: 融合・購入で解放</div>
+  <div id="mutation-index-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>
+</div>
+<div class="modal-overlay" id="modal-overlay" style="display:none" onclick="closeModal(event)">
+  <div class="modal" id="modal-content"></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+function svgChar(id){const d=SVGS[id];return d||`<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="20" fill="#556"/><text x="30" y="36" text-anchor="middle" font-size="14" fill="#fff">?</text></svg>`;}
+const SVGS={
+tralalero:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="34" rx="14" ry="16" fill="#1a6ae0"/><circle cx="30" cy="18" r="10" fill="#f5c5a3"/><rect x="18" y="10" width="24" height="6" rx="2" fill="#cc2200"/><ellipse cx="30" cy="10" rx="12" ry="3" fill="#ee3300"/><circle cx="25" cy="18" r="2.5" fill="#fff"/><circle cx="25.7" cy="18.5" r="1.2" fill="#000"/><circle cx="35" cy="18" r="2.5" fill="#fff"/><circle cx="35.7" cy="18.5" r="1.2" fill="#000"/><path d="M26,23 Q30,26 34,23" stroke="#000" stroke-width="1.2" fill="none"/><rect x="14" y="26" width="6" height="12" rx="2" fill="#e0e0e0"/><rect x="40" y="26" width="6" height="12" rx="2" fill="#e0e0e0"/><rect x="22" y="50" width="5" height="8" rx="2" fill="#e0e0e0"/><rect x="33" y="50" width="5" height="8" rx="2" fill="#e0e0e0"/></svg>`,
+bombardino:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="36" rx="15" ry="14" fill="#4a8a30"/><circle cx="30" cy="20" r="11" fill="#5aaa40"/><path d="M20,26 Q30,32 40,26" fill="#3a7a20"/><ellipse cx="22" cy="18" rx="4" ry="5" fill="#3a7a20"/><ellipse cx="38" cy="18" rx="4" ry="5" fill="#3a7a20"/><circle cx="25" cy="19" r="3" fill="#fff"/><circle cx="26" cy="19.5" r="1.5" fill="#000"/><circle cx="35" cy="19" r="3" fill="#fff"/><circle cx="36" cy="19.5" r="1.5" fill="#000"/><ellipse cx="30" cy="25" rx="5" ry="3" fill="#2a6a10"/><rect x="18" y="46" width="7" height="3" rx="1" fill="#cc9900"/><rect x="35" y="46" width="7" height="3" rx="1" fill="#cc9900"/></svg>`,
+chimpanzini:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="38" rx="13" ry="12" fill="#6a4020"/><circle cx="30" cy="22" r="11" fill="#7a5030"/><ellipse cx="20" cy="20" rx="5" ry="6" fill="#6a4020"/><ellipse cx="40" cy="20" rx="5" ry="6" fill="#6a4020"/><ellipse cx="30" cy="26" rx="7" ry="5" fill="#c08060"/><circle cx="25" cy="20" r="3" fill="#fff"/><circle cx="25.8" cy="20.5" r="1.4" fill="#1a0a00"/><circle cx="35" cy="20" r="3" fill="#fff"/><circle cx="35.8" cy="20.5" r="1.4" fill="#1a0a00"/><rect x="16" y="30" width="5" height="16" rx="2.5" fill="#6a4020"/><rect x="39" y="30" width="5" height="16" rx="2.5" fill="#6a4020"/></svg>`,
+crocodilus:`<svg viewBox="0 0 60 60"><rect x="10" y="28" width="40" height="12" rx="4" fill="#2a8a20"/><ellipse cx="45" cy="34" rx="8" ry="5" fill="#3aaa30"/><rect x="38" y="24" width="16" height="6" rx="2" fill="#2a8a20"/><circle cx="48" cy="22" r="3" fill="#fff"/><circle cx="48.5" cy="22.5" r="1.5" fill="#000"/><circle cx="54" cy="22" r="3" fill="#fff"/><circle cx="54.5" cy="22.5" r="1.5" fill="#000"/><path d="M38,30 L42,24 L44,30 L48,24 L50,30" stroke="#1a6a10" stroke-width="1.5" fill="none"/><rect x="14" y="40" width="5" height="10" rx="2" fill="#1a8a10"/><rect x="22" y="40" width="5" height="10" rx="2" fill="#1a8a10"/><rect x="33" y="40" width="5" height="10" rx="2" fill="#1a8a10"/><rect x="41" y="40" width="5" height="10" rx="2" fill="#1a8a10"/></svg>`,
+cappuccino:`<svg viewBox="0 0 60 60"><rect x="15" y="25" width="30" height="28" rx="4" fill="#8B4513"/><ellipse cx="30" cy="25" rx="15" ry="6" fill="#d2691e"/><ellipse cx="30" cy="22" rx="12" ry="5" fill="#ffe0b0"/><circle cx="23" cy="20" r="4" fill="#fff9f0"/><circle cx="30" cy="18" r="5" fill="#fff9f0"/><circle cx="37" cy="20" r="4" fill="#fff9f0"/><circle cx="24" cy="22" r="2" fill="#fff"/><circle cx="24.5" cy="22.5" r="1" fill="#000"/><circle cx="36" cy="22" r="2" fill="#fff"/><circle cx="36.5" cy="22.5" r="1" fill="#000"/><path d="M25,28 Q30,32 35,28" stroke="#5a2d0c" stroke-width="1.2" fill="none"/><rect x="45" y="32" width="8" height="4" rx="2" fill="#8B4513"/></svg>`,
+bananaio:`<svg viewBox="0 0 60 60"><path d="M10,50 Q12,24 30,14 Q48,24 50,50 Q40,46 30,48 Q20,46 10,50Z" fill="#ffdd00"/><circle cx="24" cy="30" r="3.5" fill="#fff"/><circle cx="25" cy="30.8" r="1.7" fill="#000"/><circle cx="36" cy="30" r="3.5" fill="#fff"/><circle cx="37" cy="30.8" r="1.7" fill="#000"/><path d="M25,38 Q30,42 35,38" stroke="#cc8800" stroke-width="1.5" fill="none"/><ellipse cx="30" cy="14" rx="5" ry="3" fill="#44aa00"/></svg>`,
+octodino:`<svg viewBox="0 0 60 60"><circle cx="30" cy="26" r="16" fill="#2244aa"/><path d="M14,36 Q10,50 16,54 Q18,44 20,42 Q18,52 24,56 Q24,46 26,44 Q26,54 30,56 Q34,54 34,44 Q36,46 36,56 Q42,52 40,42 Q42,44 44,54 Q50,50 46,36" fill="#2244aa"/><circle cx="24" cy="22" r="3.5" fill="#fff"/><circle cx="25" cy="22.8" r="1.7" fill="#000"/><circle cx="36" cy="22" r="3.5" fill="#fff"/><circle cx="37" cy="22.8" r="1.7" fill="#000"/><path d="M25,30 Q30,34 35,30" stroke="#aaccff" stroke-width="1.5" fill="none"/></svg>`,
+spaghetto:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="42" rx="20" ry="14" fill="#ffcc88"/><path d="M10,38 Q15,30 20,38 Q25,30 30,38 Q35,30 40,38 Q45,30 50,38" stroke="#cc6600" stroke-width="2.5" fill="none"/><circle cx="30" cy="24" r="10" fill="#f5c5a3"/><circle cx="26" cy="22" r="2" fill="#fff"/><circle cx="26.7" cy="22.5" r="1" fill="#000"/><circle cx="34" cy="22" r="2" fill="#fff"/><circle cx="34.7" cy="22.5" r="1" fill="#000"/><path d="M27,28 Q30,31 33,28" stroke="#aa4400" stroke-width="1" fill="none"/></svg>`,
+derpfish:`<svg viewBox="0 0 60 60"><ellipse cx="28" cy="32" rx="20" ry="15" fill="#44aacc"/><polygon points="48,32 58,22 58,42" fill="#33aacc"/><polygon points="10,20 2,16 8,28" fill="#33aacc"/><polygon points="10,44 2,48 8,36" fill="#33aacc"/><circle cx="20" cy="28" r="5" fill="#fff"/><circle cx="21.5" cy="28.5" r="2.5" fill="#000"/><ellipse cx="32" cy="36" rx="5" ry="3" fill="#2288aa"/></svg>`,
+snailzord:`<svg viewBox="0 0 60 60"><ellipse cx="22" cy="42" rx="18" ry="10" fill="#8B6914"/><path d="M4,40 Q6,26 16,30 Q14,18 22,22 Q20,10 30,16 Q40,10 42,20 Q50,18 48,30 Q54,34 50,42" fill="#cc9933"/><circle cx="26" cy="24" r="6" fill="#cc9933"/><circle cx="26" cy="24" r="4" fill="#eebb44"/><circle cx="18" cy="36" r="3" fill="#fff"/><circle cx="18.7" cy="36.5" r="1.5" fill="#000"/></svg>`,
+frigo:`<svg viewBox="0 0 60 60"><rect x="12" y="10" width="36" height="44" rx="5" fill="#aaddff"/><rect x="12" y="10" width="36" height="20" rx="5" fill="#88ccff"/><rect x="14" y="12" width="32" height="16" rx="3" fill="#cceeff"/><rect x="14" y="32" width="32" height="20" rx="3" fill="#ddeeff"/><rect x="42" y="20" width="4" height="6" rx="1" fill="#6699cc"/><rect x="42" y="35" width="4" height="6" rx="1" fill="#6699cc"/><circle cx="23" cy="22" r="3" fill="#fff"/><circle cx="23.7" cy="22.5" r="1.5" fill="#0055aa"/><circle cx="37" cy="22" r="3" fill="#fff"/><circle cx="37.7" cy="22.5" r="1.5" fill="#0055aa"/><path d="M24,28 Q30,32 36,28" stroke="#0066bb" stroke-width="1.2" fill="none"/></svg>`,
+boiboiboi:`<svg viewBox="0 0 60 60"><rect x="16" y="28" width="28" height="24" rx="4" fill="#ff8800"/><circle cx="30" cy="20" r="12" fill="#ffaa44"/><rect x="18" y="10" width="24" height="10" rx="3" fill="#cc5500"/><circle cx="24" cy="20" r="3" fill="#fff"/><circle cx="24.8" cy="20.5" r="1.5" fill="#000"/><circle cx="36" cy="20" r="3" fill="#fff"/><circle cx="36.8" cy="20.5" r="1.5" fill="#000"/><rect x="12" y="30" width="6" height="14" rx="3" fill="#ff8800"/><rect x="42" y="30" width="6" height="14" rx="3" fill="#ff8800"/></svg>`,
+glorbo:`<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="20" fill="#8822dd"/><circle cx="30" cy="30" r="15" fill="#aa44ff"/><circle cx="23" cy="26" r="4" fill="#fff"/><circle cx="24" cy="26.8" r="2" fill="#4400aa"/><circle cx="37" cy="26" r="4" fill="#fff"/><circle cx="38" cy="26.8" r="2" fill="#4400aa"/><path d="M24,34 Q30,38 36,34" stroke="#4400aa" stroke-width="1.5" fill="none"/><circle cx="16" cy="16" r="4" fill="#cc33ff" opacity=".7"/><circle cx="44" cy="14" r="3" fill="#cc33ff" opacity=".7"/></svg>`,
+skibidi:`<svg viewBox="0 0 60 60"><rect x="18" y="30" width="24" height="22" rx="4" fill="#444"/><rect x="16" y="26" width="28" height="8" rx="3" fill="#333"/><circle cx="30" cy="20" r="12" fill="#f5c5a3"/><rect x="22" y="10" width="16" height="8" rx="2" fill="#222"/><circle cx="25" cy="20" r="2.5" fill="#fff"/><circle cx="25.7" cy="20.5" r="1.2" fill="#000"/><circle cx="35" cy="20" r="2.5" fill="#fff"/><circle cx="35.7" cy="20.5" r="1.2" fill="#000"/></svg>`,
+mutanimals:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="38" rx="16" ry="14" fill="#4a8a20"/><circle cx="30" cy="22" r="12" fill="#5aaa30"/><polygon points="20,14 16,6 24,12" fill="#3a7a10"/><polygon points="40,14 44,6 36,12" fill="#3a7a10"/><circle cx="25" cy="20" r="3" fill="#ff0"/><circle cx="25.8" cy="20.8" r="1.4" fill="#000"/><circle cx="35" cy="20" r="3" fill="#ff0"/><circle cx="35.8" cy="20.8" r="1.4" fill="#000"/></svg>`,
+gloopii:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="34" rx="20" ry="22" fill="#44ddaa"/><ellipse cx="30" cy="24" rx="16" ry="14" fill="#66ffcc"/><circle cx="24" cy="22" r="4" fill="#fff"/><circle cx="25" cy="23" r="2" fill="#005533"/><circle cx="36" cy="22" r="4" fill="#fff"/><circle cx="37" cy="23" r="2" fill="#005533"/><path d="M25,30 Q30,34 35,30" stroke="#22aa88" stroke-width="1.5" fill="none"/></svg>`,
+thunderpig:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="38" rx="18" ry="14" fill="#ffaacc"/><circle cx="30" cy="22" r="14" fill="#ffbbcc"/><ellipse cx="22" cy="18" rx="5" ry="6" fill="#ffaacc"/><ellipse cx="38" cy="18" rx="5" ry="6" fill="#ffaacc"/><circle cx="25" cy="20" r="3" fill="#fff"/><circle cx="25.8" cy="20.7" r="1.5" fill="#000"/><circle cx="35" cy="20" r="3" fill="#fff"/><circle cx="35.8" cy="20.7" r="1.5" fill="#000"/><path d="M22,36 L26,28 L24,30 L28,20 L26,24 L32,12" stroke="#ffdd00" stroke-width="2" fill="none"/></svg>`,
+spookster:`<svg viewBox="0 0 60 60"><path d="M14,60 Q14,30 30,14 Q46,30 46,60 Q40,54 36,60 Q32,54 30,60 Q28,54 24,60 Q20,54 14,60Z" fill="#e0e0ff" opacity=".9"/><circle cx="23" cy="30" r="5" fill="#000"/><circle cx="37" cy="30" r="5" fill="#000"/><circle cx="24" cy="29" r="2" fill="#fff"/><circle cx="38" cy="29" r="2" fill="#fff"/></svg>`,
+noodleface:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="36" rx="18" ry="20" fill="#ffe4aa"/><path d="M12,30 Q14,20 18,24 Q16,14 22,18 Q20,8 28,14 Q26,6 32,10 Q30,4 36,10 Q38,6 42,12" stroke="#cc8800" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="24" cy="30" r="3.5" fill="#fff"/><circle cx="25" cy="30.8" r="1.8" fill="#000"/><circle cx="36" cy="30" r="3.5" fill="#fff"/><circle cx="37" cy="30.8" r="1.8" fill="#000"/></svg>`,
+pizzaface:`<svg viewBox="0 0 60 60"><polygon points="30,4 6,52 54,52" fill="#e8a030"/><polygon points="30,10 10,48 50,48" fill="#cc3300"/><circle cx="24" cy="36" r="3" fill="#fff"/><circle cx="24.8" cy="36.8" r="1.5" fill="#000"/><circle cx="36" cy="36" r="3" fill="#fff"/><circle cx="36.8" cy="36.8" r="1.5" fill="#000"/><path d="M26,44 Q30,48 34,44" stroke="#000" stroke-width="1.2" fill="none"/></svg>`,
+hotdogman:`<svg viewBox="0 0 60 60"><rect x="10" y="20" width="40" height="30" rx="15" fill="#c87040"/><rect x="12" y="26" width="36" height="18" rx="8" fill="#e8c080"/><path d="M14,30 Q20,24 26,30 Q32,24 38,30 Q44,24 48,30" stroke="#ffdd00" stroke-width="2" fill="none"/><circle cx="23" cy="34" r="3" fill="#fff"/><circle cx="23.7" cy="34.5" r="1.4" fill="#000"/><circle cx="37" cy="34" r="3" fill="#fff"/><circle cx="37.7" cy="34.5" r="1.4" fill="#000"/></svg>`,
+cheeseborg:`<svg viewBox="0 0 60 60"><rect x="10" y="28" width="40" height="26" rx="4" fill="#c8b010"/><polygon points="10,28 30,8 50,28" fill="#f0d830"/><circle cx="20" cy="22" r="3" fill="#ffe070"/><circle cx="30" cy="18" r="3" fill="#ffe070"/><circle cx="40" cy="22" r="3" fill="#ffe070"/><circle cx="22" cy="36" r="4" fill="#fff"/><circle cx="23" cy="37" r="2" fill="#000"/><circle cx="38" cy="36" r="4" fill="#fff"/><circle cx="39" cy="37" r="2" fill="#000"/></svg>`,
+lavadrill:`<svg viewBox="0 0 60 60"><circle cx="30" cy="28" r="18" fill="#cc4400"/><circle cx="30" cy="28" r="13" fill="#ee6600"/><polygon points="30,6 34,24 30,18 26,24" fill="#ffaa00"/><circle cx="24" cy="30" r="3" fill="#fff"/><circle cx="24.8" cy="30.5" r="1.5" fill="#000"/><circle cx="36" cy="30" r="3" fill="#fff"/><circle cx="36.8" cy="30.5" r="1.5" fill="#000"/><ellipse cx="20" cy="48" rx="3" ry="5" fill="#ff4400"/><ellipse cx="30" cy="50" rx="3" ry="5" fill="#ff6600"/><ellipse cx="40" cy="48" rx="3" ry="5" fill="#ff4400"/></svg>`,
+jacko:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="36" rx="18" ry="18" fill="#e87020"/><polygon points="19,28 23,22 23,30" fill="#000"/><polygon points="41,28 37,22 37,30" fill="#000"/><path d="M19,37 L22,40 L25,37 L28,40 L30,37 L32,40 L35,37 L38,40 L41,37" stroke="#000" stroke-width="1.5" fill="none"/><rect x="26" y="14" width="8" height="8" rx="2" fill="#2a6a10"/></svg>`,
+cameraman:`<svg viewBox="0 0 60 60"><rect x="12" y="22" width="36" height="26" rx="5" fill="#222"/><circle cx="30" cy="35" r="10" fill="#111"/><circle cx="30" cy="35" r="7" fill="#1a2a4a"/><circle cx="30" cy="35" r="4.5" fill="#0a1a3a"/><rect x="36" y="24" width="6" height="5" rx="1.5" fill="#ffee00"/><rect x="12" y="15" width="14" height="9" rx="2" fill="#222"/></svg>`,
+robotello:`<svg viewBox="0 0 60 60"><rect x="14" y="24" width="32" height="28" rx="4" fill="#445566"/><rect x="16" y="10" width="28" height="16" rx="4" fill="#445566"/><circle cx="25" cy="18" r="4" fill="#00ffcc"/><circle cx="25.8" cy="18.5" r="2" fill="#004433"/><circle cx="35" cy="18" r="4" fill="#00ffcc"/><circle cx="35.8" cy="18.5" r="2" fill="#004433"/><rect x="24" y="34" width="12" height="3" rx="1" fill="#00cc88"/><rect x="8" y="28" width="6" height="14" rx="3" fill="#445566"/><rect x="46" y="28" width="6" height="14" rx="3" fill="#445566"/></svg>`,
+zappyboi:`<svg viewBox="0 0 60 60"><rect x="16" y="26" width="28" height="26" rx="5" fill="#1144aa"/><circle cx="30" cy="18" r="12" fill="#2255cc"/><path d="M20,8 L26,18 L22,18 L28,30 L24,30 L32,8 Z" fill="#ffdd00"/><circle cx="24" cy="19" r="3" fill="#fff"/><circle cx="25" cy="19.8" r="1.5" fill="#0022aa"/><circle cx="36" cy="19" r="3" fill="#fff"/><circle cx="37" cy="19.8" r="1.5" fill="#0022aa"/></svg>`,
+magmakong:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="36" rx="18" ry="16" fill="#880000"/><circle cx="30" cy="20" r="14" fill="#aa2200"/><ellipse cx="18" cy="18" rx="7" ry="8" fill="#880000"/><ellipse cx="42" cy="18" rx="7" ry="8" fill="#880000"/><circle cx="24" cy="20" r="4" fill="#ff6600"/><circle cx="25" cy="21" r="2" fill="#000"/><circle cx="36" cy="20" r="4" fill="#ff6600"/><circle cx="37" cy="21" r="2" fill="#000"/><rect x="10" y="32" width="8" height="18" rx="4" fill="#880000"/><rect x="42" y="32" width="8" height="18" rx="4" fill="#880000"/></svg>`,
+moonrabbit:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="40" rx="14" ry="16" fill="#e8e0ff"/><circle cx="30" cy="24" r="12" fill="#f0e8ff"/><ellipse cx="22" cy="12" rx="4" ry="10" fill="#e8e0ff"/><ellipse cx="38" cy="12" rx="4" ry="10" fill="#e8e0ff"/><ellipse cx="22" cy="12" rx="2.5" ry="7" fill="#ffaabb"/><ellipse cx="38" cy="12" rx="2.5" ry="7" fill="#ffaabb"/><circle cx="25" cy="24" r="3.5" fill="#fff"/><circle cx="26" cy="24.8" r="1.8" fill="#7744aa"/><circle cx="35" cy="24" r="3.5" fill="#fff"/><circle cx="36" cy="24.8" r="1.8" fill="#7744aa"/></svg>`,
+beefnado:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="36" rx="18" ry="16" fill="#884422"/><circle cx="30" cy="20" r="14" fill="#aa5533"/><polygon points="20,12 16,4 24,10" fill="#cc6600"/><polygon points="40,12 44,4 36,10" fill="#cc6600"/><circle cx="24" cy="20" r="3.5" fill="#fff"/><circle cx="25" cy="21" r="1.8" fill="#220000"/><circle cx="36" cy="20" r="3.5" fill="#fff"/><circle cx="37" cy="21" r="1.8" fill="#220000"/></svg>`,
+aquadoge:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="36" rx="16" ry="14" fill="#daa520"/><circle cx="30" cy="22" r="13" fill="#f0b030"/><ellipse cx="20" cy="20" rx="5" ry="6" fill="#daa520"/><ellipse cx="40" cy="20" rx="5" ry="6" fill="#daa520"/><circle cx="25" cy="20" r="3.5" fill="#fff"/><circle cx="26" cy="21" r="1.8" fill="#000"/><circle cx="35" cy="20" r="3.5" fill="#fff"/><circle cx="36" cy="21" r="1.8" fill="#000"/></svg>`,
+turbosnake:`<svg viewBox="0 0 60 60"><path d="M6,50 Q10,36 20,32 Q30,28 36,20 Q42,12 54,14" stroke="#22aa44" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M6,50 Q10,36 20,32 Q30,28 36,20 Q42,12 54,14" stroke="#44cc66" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="54" cy="14" r="7" fill="#33bb55"/><circle cx="51" cy="11" r="2.5" fill="#fff"/><circle cx="57" cy="11" r="2.5" fill="#fff"/></svg>`,
+stormcrow:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="34" rx="14" ry="16" fill="#223344"/><path d="M10,28 Q8,14 20,22" fill="#223344"/><path d="M50,28 Q52,14 40,22" fill="#223344"/><circle cx="30" cy="18" r="12" fill="#334455"/><circle cx="24" cy="16" r="3.5" fill="#fff"/><circle cx="25" cy="17" r="1.8" fill="#1a0033"/><circle cx="36" cy="16" r="3.5" fill="#fff"/><circle cx="37" cy="17" r="1.8" fill="#1a0033"/><path d="M6,38 L14,32 L11,38 L18,33" stroke="#ffdd00" stroke-width="1.8" fill="none"/><path d="M54,38 L46,32 L49,38 L42,33" stroke="#ffdd00" stroke-width="1.8" fill="none"/></svg>`,
+sandworm:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="18" rx="16" ry="14" fill="#cc9944"/><path d="M14,28 Q10,40 14,52" stroke="#cc9944" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M30,30 Q26,42 30,54" stroke="#cc9944" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M46,28 Q50,40 46,52" stroke="#cc9944" stroke-width="10" fill="none" stroke-linecap="round"/><circle cx="24" cy="16" r="4" fill="#fff"/><circle cx="25" cy="17" r="2" fill="#440000"/><circle cx="36" cy="16" r="4" fill="#fff"/><circle cx="37" cy="17" r="2" fill="#440000"/></svg>`,
+partybandi:`<svg viewBox="0 0 60 60"><rect x="16" y="26" width="28" height="26" rx="4" fill="#2a2a2a"/><circle cx="30" cy="20" r="11" fill="#3a3a3a"/><rect x="16" y="12" width="28" height="7" rx="2" fill="#cc3333"/><polygon points="30,2 24,12 36,12" fill="#ff44aa"/><circle cx="24" cy="19" r="2.5" fill="#ff0000"/><circle cx="36" cy="19" r="2.5" fill="#ff0000"/><rect x="6" y="28" width="4" height="4" rx="1" fill="#ff0"/><rect x="50" y="30" width="4" height="4" rx="1" fill="#0ff"/></svg>`,
+ketoubat:`<svg viewBox="0 0 60 60"><path d="M8,28 Q4,14 16,20" fill="#4a2060"/><path d="M52,28 Q56,14 44,20" fill="#4a2060"/><ellipse cx="30" cy="38" rx="15" ry="16" fill="#6a30a0"/><circle cx="30" cy="22" r="13" fill="#7a40b0"/><polygon points="20,14 17,4 26,12" fill="#cc80cc"/><polygon points="40,14 43,4 34,12" fill="#cc80cc"/><circle cx="24" cy="22" r="3" fill="#ff0"/><circle cx="24.5" cy="22.5" r="1.5" fill="#000"/><circle cx="36" cy="22" r="3" fill="#ff0"/><circle cx="36.5" cy="22.5" r="1.5" fill="#000"/></svg>`,
+fizzuru:`<svg viewBox="0 0 60 60"><rect x="18" y="22" width="28" height="34" rx="6" fill="#0088cc"/><rect x="26" y="8" width="6" height="18" rx="2.5" fill="#ff6688"/><circle cx="26" cy="38" r="4" fill="#fff"/><circle cx="27" cy="38.8" r="2" fill="#000"/><circle cx="38" cy="38" r="4" fill="#fff"/><circle cx="39" cy="38.8" r="2" fill="#000"/><path d="M26,46 Q32,50 38,46" stroke="#000" stroke-width="1.5" fill="none"/></svg>`,
+crystalus:`<svg viewBox="0 0 60 60"><polygon points="30,4 46,22 40,44 20,44 14,22" fill="#88aaff" opacity=".8"/><circle cx="24" cy="26" r="3" fill="#fff"/><circle cx="24.8" cy="26.8" r="1.5" fill="#2244aa"/><circle cx="36" cy="26" r="3" fill="#fff"/><circle cx="36.8" cy="26.8" r="1.5" fill="#2244aa"/><path d="M25,33 Q30,37 35,33" stroke="#4466cc" stroke-width="1.3" fill="none"/></svg>`,
+ironmacho:`<svg viewBox="0 0 60 60"><rect x="14" y="24" width="32" height="28" rx="3" fill="#556677"/><rect x="14" y="14" width="32" height="12" rx="4" fill="#556677"/><rect x="22" y="18" width="6" height="4" rx="1" fill="#ff4400"/><rect x="32" y="18" width="6" height="4" rx="1" fill="#00ccff"/><rect x="6" y="26" width="8" height="18" rx="3" fill="#556677"/><rect x="46" y="26" width="8" height="18" rx="3" fill="#556677"/></svg>`,
+vortexio:`<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="#110033"/><path d="M30,10 Q50,20 50,30 Q50,50 30,50 Q10,50 10,30 Q10,10 30,10" stroke="#8844ff" stroke-width="2" fill="none"/><circle cx="24" cy="28" r="3.5" fill="#fff"/><circle cx="25" cy="28.8" r="1.8" fill="#6600cc"/><circle cx="36" cy="28" r="3.5" fill="#fff"/><circle cx="37" cy="28.8" r="1.8" fill="#6600cc"/><path d="M25,35 Q30,39 35,35" stroke="#aa66ff" stroke-width="1.5" fill="none"/></svg>`,
+flamurai:`<svg viewBox="0 0 60 60"><rect x="18" y="28" width="24" height="24" rx="4" fill="#cc2200"/><circle cx="30" cy="20" r="13" fill="#dd3300"/><rect x="20" y="8" width="20" height="12" rx="2" fill="#881100"/><rect x="14" y="10" width="5" height="18" rx="2" fill="#cc2200"/><rect x="41" y="10" width="5" height="18" rx="2" fill="#cc2200"/><circle cx="25" cy="20" r="3" fill="#fff"/><circle cx="25.8" cy="20.7" r="1.5" fill="#000"/><circle cx="35" cy="20" r="3" fill="#fff"/><circle cx="35.8" cy="20.7" r="1.5" fill="#000"/></svg>`,
+technocat:`<svg viewBox="0 0 60 60"><rect x="14" y="26" width="32" height="28" rx="6" fill="#334455"/><circle cx="30" cy="20" r="14" fill="#445566"/><polygon points="16,16 10,4 22,12" fill="#334455"/><polygon points="44,16 50,4 38,12" fill="#334455"/><polygon points="17,15 12,7 22,12" fill="#cc44ff"/><polygon points="43,15 48,7 38,12" fill="#cc44ff"/><circle cx="23" cy="20" r="4" fill="#00ffcc"/><circle cx="24.2" cy="21" r="2" fill="#004433"/><circle cx="37" cy="20" r="4" fill="#00ffcc"/><circle cx="38.2" cy="21" r="2" fill="#004433"/></svg>`,
+punchbot:`<svg viewBox="0 0 60 60"><rect x="18" y="22" width="24" height="30" rx="4" fill="#cc4400"/><rect x="16" y="10" width="28" height="14" rx="4" fill="#dd5500"/><circle cx="23" cy="17" r="4" fill="#ffcc00"/><circle cx="24" cy="18" r="2" fill="#cc8800"/><circle cx="37" cy="17" r="4" fill="#ffcc00"/><circle cx="38" cy="18" r="2" fill="#cc8800"/><rect x="4" y="24" width="14" height="10" rx="5" fill="#cc4400"/><rect x="42" y="24" width="14" height="10" rx="5" fill="#cc4400"/></svg>`,
+donutknight:`<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="#e87030"/><circle cx="30" cy="30" r="12" fill="#0d0d1a"/><ellipse cx="30" cy="30" rx="22" ry="8" fill="#ff99aa" opacity=".5"/><circle cx="14" cy="22" r="3" fill="#ffdd44"/><circle cx="46" cy="22" r="3" fill="#ff88aa"/><circle cx="30" cy="12" r="3" fill="#ff44aa"/><circle cx="24" cy="27" r="3" fill="#fff"/><circle cx="24.8" cy="27.8" r="1.5" fill="#000"/><circle cx="36" cy="27" r="3" fill="#fff"/><circle cx="36.8" cy="27.8" r="1.5" fill="#000"/></svg>`,
+tantan:`<svg viewBox="0 0 60 60"><defs><radialGradient id="tg" cx="40%" cy="35%"><stop offset="0%" stop-color="#fff8aa"/><stop offset="100%" stop-color="#cc8800"/></radialGradient></defs><circle cx="30" cy="30" r="24" fill="url(#tg)"/><circle cx="30" cy="30" r="18" fill="#ffaa00"/><circle cx="23" cy="27" r="4" fill="#fff"/><circle cx="24.2" cy="28" r="2" fill="#663300"/><circle cx="37" cy="27" r="4" fill="#fff"/><circle cx="38.2" cy="28" r="2" fill="#663300"/><path d="M24,35 Q30,40 36,35" stroke="#994400" stroke-width="2" fill="none"/></svg>`,
+jellyqueen:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="26" rx="20" ry="18" fill="#ff88cc" opacity=".8"/><path d="M14,36 Q12,48 16,54" stroke="#ff88cc" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M30,40 Q30,52 30,58" stroke="#ff88cc" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M46,36 Q48,48 44,54" stroke="#ff88cc" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="23" cy="22" r="4" fill="#fff"/><circle cx="24" cy="23" r="2" fill="#cc0066"/><circle cx="37" cy="22" r="4" fill="#fff"/><circle cx="38" cy="23" r="2" fill="#cc0066"/><path d="M25,30 Q30,34 35,30" stroke="#cc0066" stroke-width="1.5" fill="none"/></svg>`,
+solarphoenix:`<svg viewBox="0 0 60 60"><path d="M30,10 L36,28 L52,28 L40,38 L44,56 L30,46 L16,56 L20,38 L8,28 L24,28 Z" fill="#ff8800"/><path d="M30,14 L35,28 L48,28 L38,36 L42,50 L30,42 L18,50 L22,36 L12,28 L25,28 Z" fill="#ffcc00"/><circle cx="30" cy="32" r="8" fill="#fff8aa"/><circle cx="26" cy="30" r="2.5" fill="#ff4400"/><circle cx="34" cy="30" r="2.5" fill="#ff4400"/></svg>`,
+draconite:`<svg viewBox="0 0 60 60"><ellipse cx="30" cy="36" rx="16" ry="16" fill="#224488"/><circle cx="30" cy="20" r="14" fill="#335599"/><path d="M18,12 L12,2 L22,10" fill="#224488"/><path d="M42,12 L48,2 L38,10" fill="#224488"/><path d="M18,11 L13,5 L22,9" fill="#88aacc"/><path d="M42,11 L47,5 L38,9" fill="#88aacc"/><circle cx="24" cy="20" r="4" fill="#ffaa00"/><circle cx="25" cy="21" r="2" fill="#000"/><circle cx="36" cy="20" r="4" fill="#ffaa00"/><circle cx="37" cy="21" r="2" fill="#000"/></svg>`,
+whaleasaurus:`<svg viewBox="0 0 60 60"><ellipse cx="28" cy="32" rx="22" ry="16" fill="#1155aa"/><path d="M50,32 Q58,24 56,40Z" fill="#1155aa"/><ellipse cx="28" cy="26" rx="14" ry="8" fill="#2266cc"/><circle cx="18" cy="26" r="5" fill="#fff"/><circle cx="19.5" cy="26.8" r="2.5" fill="#000"/><polygon points="26,36 30,44 34,36" fill="#0a3a88"/></svg>`,
+goldfish_god:`<svg viewBox="0 0 60 60"><defs><radialGradient id="gg" cx="40%" cy="35%"><stop offset="0%" stop-color="#ffeeaa"/><stop offset="100%" stop-color="#ff8800"/></radialGradient></defs><ellipse cx="28" cy="32" rx="18" ry="12" fill="url(#gg)"/><path d="M46,32 Q56,20 54,32 Q56,44 46,32Z" fill="#ffaa00"/><path d="M10,22 Q2,16 8,28Z" fill="#ffaa00"/><path d="M10,42 Q2,48 8,36Z" fill="#ffaa00"/><circle cx="18" cy="28" r="5" fill="#fff"/><circle cx="19.5" cy="29" r="2.5" fill="#000"/><circle cx="40" cy="16" r="4" fill="#ffdd00" opacity=".7"/></svg>`,
+rainbowski:`<svg viewBox="0 0 60 60"><path d="M6,48 Q10,24 30,20 Q50,24 54,48" fill="none" stroke="#ff4444" stroke-width="4"/><path d="M8,50 Q12,28 30,24 Q48,28 52,50" fill="none" stroke="#ff8800" stroke-width="3"/><path d="M10,52 Q14,32 30,28 Q46,32 50,52" fill="none" stroke="#ffdd00" stroke-width="3"/><path d="M12,54 Q16,36 30,32 Q44,36 48,54" fill="none" stroke="#44dd44" stroke-width="3"/><circle cx="30" cy="16" r="10" fill="#f5c5a3"/><circle cx="25" cy="14" r="2.5" fill="#fff"/><circle cx="25.8" cy="14.5" r="1.2" fill="#000"/><circle cx="35" cy="14" r="2.5" fill="#fff"/><circle cx="35.8" cy="14.5" r="1.2" fill="#000"/></svg>`,
+cosmicbrain:`<svg viewBox="0 0 60 60"><defs><radialGradient id="cg" cx="40%" cy="35%"><stop offset="0%" stop-color="#ffaaff"/><stop offset="60%" stop-color="#ff3366"/><stop offset="100%" stop-color="#880022"/></radialGradient></defs><circle cx="30" cy="28" r="22" fill="url(#cg)"/><path d="M16,22 Q20,16 26,20 Q22,12 30,14 Q38,12 34,20 Q40,16 44,22 Q44,30 38,32 Q42,36 36,38 Q32,44 30,40 Q28,44 24,38 Q18,36 22,32 Q16,30 16,22Z" fill="#ffddff" opacity=".3"/><circle cx="23" cy="25" r="4.5" fill="#fff"/><circle cx="24.5" cy="26" r="2.2" fill="#cc0044"/><circle cx="37" cy="25" r="4.5" fill="#fff"/><circle cx="38.5" cy="26" r="2.2" fill="#cc0044"/><path d="M23,33 Q30,38 37,33" stroke="#ff66aa" stroke-width="2" fill="none"/></svg>`,
+omegaboss:`<svg viewBox="0 0 60 60"><defs><radialGradient id="og" cx="50%" cy="30%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#ffdd00"/><stop offset="100%" stop-color="#aa6600"/></radialGradient></defs><polygon points="30,2 38,18 56,18 42,30 48,48 30,38 12,48 18,30 4,18 22,18" fill="url(#og)"/><circle cx="30" cy="28" r="12" fill="#ffcc00" opacity=".9"/><circle cx="24" cy="26" r="3.5" fill="#fff"/><circle cx="25" cy="27" r="1.8" fill="#000"/><circle cx="36" cy="26" r="3.5" fill="#fff"/><circle cx="37" cy="27" r="1.8" fill="#000"/><path d="M24,33 Q30,38 36,33" stroke="#996600" stroke-width="2" fill="none"/></svg>`
+};
+const RARITIES={common:{label:'COMMON',weight:45},uncommon:{label:'UNCOMMON',weight:30},rare:{label:'RARE',weight:15},epic:{label:'EPIC',weight:7},legendary:{label:'LEGENDARY',weight:2},mythic:{label:'MYTHIC',weight:1}};
+const CHARACTERS=[
+{id:'tralalero',name:'トラッラレロ',rarity:'common',rate:4,desc:'有名なサメ男。ズボンが特徴的。'},
+{id:'bombardino',name:'ボンバルディーノ',rarity:'common',rate:6,desc:'ワニ。軍用機が好き。'},
+{id:'chimpanzini',name:'チンパンジーニ',rarity:'common',rate:3,desc:'バナナが得意なサル系キャラ。'},
+{id:'crocodilus',name:'クロコディルス',rarity:'common',rate:5,desc:'地を這うワニの亜種。'},
+{id:'cappuccino',name:'カプチーノ',rarity:'common',rate:2,desc:'コーヒー泡の精霊。'},
+{id:'bananaio',name:'バナナイオ',rarity:'common',rate:3.5,desc:'バナナ形の謎の生命体。'},
+{id:'octodino',name:'オクトディーノ',rarity:'common',rate:4,desc:'タコとティラノの合体生物。'},
+{id:'spaghetto',name:'スパゲッティーノ',rarity:'common',rate:3,desc:'麺類の王者。'},
+{id:'derpfish',name:'ダープフィッシュ',rarity:'common',rate:4.5,desc:'ポンコツな顔の魚。'},
+{id:'snailzord',name:'スネイルゾード',rarity:'common',rate:3.5,desc:'殻に隠れるカタツムリの戦士。'},
+{id:'frigo',name:'フリーゴ',rarity:'uncommon',rate:12,desc:'冷蔵庫の精。冷静。'},
+{id:'boiboiboi',name:'ボイボイボイ',rarity:'uncommon',rate:15,desc:'謎の叫び声を発する。'},
+{id:'glorbo',name:'グロルボ',rarity:'uncommon',rate:11,desc:'紫の球体生命体。'},
+{id:'skibidi',name:'スキビディ',rarity:'uncommon',rate:16,desc:'有名な便器の悪魔。'},
+{id:'mutanimals',name:'ミュータニマルズ',rarity:'uncommon',rate:10,desc:'突然変異した生き物。'},
+{id:'gloopii',name:'グルーピー',rarity:'uncommon',rate:9,desc:'スライム系の友好生物。'},
+{id:'noodleface',name:'ヌードルフェイス',rarity:'uncommon',rate:8,desc:'麺が頭から生えてる謎キャラ。'},
+{id:'thunderpig',name:'サンダーピッグ',rarity:'uncommon',rate:13,desc:'稲妻を操るブタ。'},
+{id:'spookster',name:'スプークスター',rarity:'uncommon',rate:10,desc:'フレンドリーな幽霊。'},
+{id:'pizzaface',name:'ピザフェイス',rarity:'uncommon',rate:11,desc:'三角形のピザ生命体。'},
+{id:'hotdogman',name:'ホットドッグマン',rarity:'uncommon',rate:9,desc:'ホットドッグの体を持つ謎の男。'},
+{id:'cheeseborg',name:'チーズボーグ',rarity:'uncommon',rate:12,desc:'チーズでできたロボット。'},
+{id:'lavadrill',name:'ラヴァドリット',rarity:'rare',rate:45,desc:'溶岩ドリルの化身。とても熱い。'},
+{id:'jacko',name:'ジャッコ',rarity:'rare',rate:16,desc:'かぼちゃの亡霊。ハロウィンの主。'},
+{id:'cameraman',name:'カメラマン',rarity:'rare',rate:35,desc:'常にカメラを持っている謎の男。'},
+{id:'robotello',name:'ロボテッロ',rarity:'rare',rate:40,desc:'古代ロボット。AIが宿る。'},
+{id:'zappyboi',name:'ザッピーボーイ',rarity:'rare',rate:38,desc:'電気を操る少年。'},
+{id:'magmakong',name:'マグマコング',rarity:'rare',rate:42,desc:'マグマのゴリラ。迫力満点。'},
+{id:'moonrabbit',name:'ムーンラビット',rarity:'rare',rate:30,desc:'月から来たウサギ。'},
+{id:'beefnado',name:'ビーフナード',rarity:'rare',rate:36,desc:'肉の竜巻。'},
+{id:'aquadoge',name:'アクアドージ',rarity:'rare',rate:32,desc:'波乗りが得意な犬。'},
+{id:'turbosnake',name:'ターボスネーク',rarity:'rare',rate:44,desc:'超高速のヘビ。音速で走る。'},
+{id:'stormcrow',name:'ストームクロウ',rarity:'rare',rate:34,desc:'嵐を呼ぶ黒いカラス。'},
+{id:'sandworm',name:'サンドワーム',rarity:'rare',rate:39,desc:'砂漠の地下を駆け抜けるワーム。'},
+{id:'partybandi',name:'パーティバンディット',rarity:'epic',rate:100,desc:'パーティを乗っ取る最強の泥棒。'},
+{id:'ketoubat',name:'ケトゥバット',rarity:'epic',rate:120,desc:'ネコとコウモリのハイブリッド。'},
+{id:'fizzuru',name:'フィズルー',rarity:'epic',rate:95,desc:'炭酸の精霊。シュワシュワ。'},
+{id:'crystalus',name:'クリスタルス',rarity:'epic',rate:110,desc:'水晶の体を持つ神秘生物。'},
+{id:'ironmacho',name:'アイアンマッチョ',rarity:'epic',rate:105,desc:'鋼鉄の筋肉マン。'},
+{id:'vortexio',name:'ヴォルテクシオ',rarity:'epic',rate:115,desc:'渦巻きの次元から来た存在。'},
+{id:'flamurai',name:'フラムライ',rarity:'epic',rate:98,desc:'炎の侍。刀は火炎放射。'},
+{id:'technocat',name:'テクノキャット',rarity:'epic',rate:108,desc:'サイバネティクス猫。量子CPUが脳に。'},
+{id:'punchbot',name:'パンチボット',rarity:'epic',rate:102,desc:'パンチが専門の戦闘ロボ。'},
+{id:'donutknight',name:'ドーナツナイト',rarity:'epic',rate:112,desc:'ドーナツの守護騎士。甘い戦士。'},
+{id:'tantan',name:'タンタン・ケレタン',rarity:'legendary',rate:500,desc:'謎の存在。その力は計り知れない。'},
+{id:'jellyqueen',name:'ジェリークイーン',rarity:'legendary',rate:480,desc:'クラゲの女王。海の支配者。'},
+{id:'solarphoenix',name:'ソーラーフェニックス',rarity:'legendary',rate:520,desc:'太陽の力を宿す不死鳥。'},
+{id:'draconite',name:'ドラコナイト',rarity:'legendary',rate:490,desc:'古代竜の魂を持つ騎士。'},
+{id:'whaleasaurus',name:'クジラザウルス',rarity:'legendary',rate:460,desc:'クジラと恐竜の合体生物。'},
+{id:'goldfish_god',name:'金魚神',rarity:'legendary',rate:510,desc:'神格化された金魚。願いを叶える。'},
+{id:'rainbowski',name:'レインボースキー',rarity:'legendary',rate:470,desc:'虹を纏う謎のスキーヤー。'},
+{id:'cosmicbrain',name:'コズミックブレイン',rarity:'mythic',rate:9999,desc:'宇宙の知性の具現化。⚗️融合でのみ入手可能！'},
+{id:'omegaboss',name:'オメガボス',rarity:'mythic',rate:99999,desc:'全てのブレインロットの支配者。⚗️伝説の融合が必要！'}
+];
+const FUSION_RECIPES=[
+{id:'cosmicbrain',result:'cosmicbrain',ingredients:[{id:'tantan',count:1},{id:'jellyqueen',count:1},{id:'solarphoenix',count:1}],name:'コズミックブレイン召喚'},
+{id:'omegaboss',result:'omegaboss',ingredients:[{id:'draconite',count:1},{id:'whaleasaurus',count:1},{id:'goldfish_god',count:1},{id:'rainbowski',count:1}],name:'オメガボス降臨'}
+];
+const RARITY_ORDER=['common','uncommon','rare','epic','legendary'];
+const DAILY_QUESTS_DEF=[
+{id:'buy3',name:'ショッピング好き',desc:'ショップで3体購入する',target:3,reward:5000,icon:'🛒',type:'buy'},
+{id:'trade3',name:'凄腕トレーダー',desc:'トレードを3回行う',target:3,reward:8000,icon:'🔄',type:'trade'},
+{id:'earn50k',name:'稼ぎ頭',desc:'合計$50,000稼ぐ',target:50000,reward:10000,icon:'💰',type:'earn'},
+{id:'discover5',name:'探検家',desc:'新しいキャラを5体発見する',target:5,reward:15000,icon:'🔍',type:'discover'},
+{id:'base8',name:'陣地固め',desc:'基地に8体配置する',target:8,reward:20000,icon:'🏰',type:'base'},
+{id:'fusion1',name:'錬金術の始まり',desc:'融合を1回行う',target:1,reward:30000,icon:'⚗️',type:'fusion'}
+];
+const ACHIEVEMENTS_DEF=[
+{id:'first_buy',name:'初購入！',desc:'ショップで初めて購入',icon:'🎁',condition:s=>s.stats.totalBuys>=1},
+{id:'collector10',name:'コレクター',desc:'10種類のキャラを収集',icon:'📦',condition:s=>s.discovered.size>=10},
+{id:'collector_all',name:'完全コレクター',desc:'全キャラを発見',icon:'🌟',condition:s=>s.discovered.size>=CHARACTERS.length},
+{id:'millionaire',name:'ミリオネア',desc:'$1,000,000稼ぐ',icon:'💵',condition:s=>s.stats.totalEarned>=1000000},
+{id:'trader10',name:'トレードの達人',desc:'10回トレードする',icon:'🤝',condition:s=>s.stats.totalTrades>=10},
+{id:'first_legendary',name:'伝説の始まり',desc:'レジェンダリーを入手',icon:'⭐',condition:s=>[...s.discovered].some(id=>CHARACTERS.find(c=>c.id===id)?.rarity==='legendary')},
+{id:'first_mythic',name:'神話の存在',desc:'ミシックを入手',icon:'👑',condition:s=>[...s.discovered].some(id=>CHARACTERS.find(c=>c.id===id)?.rarity==='mythic')},
+{id:'big_base',name:'大基地',desc:'基地スロットを20個以上にする',icon:'🏯',condition:s=>s.baseSlots>=20},
+{id:'first_fusion',name:'錬金術師',desc:'融合を初めて行う',icon:'⚗️',condition:s=>s.stats.totalFusions>=1},
+{id:'rich',name:'億万長者',desc:'$100,000,000稼ぐ',icon:'💎',condition:s=>s.stats.totalEarned>=100000000}
+];
+let state={money:500000,rate:0,baseSlots:8,base:[],inventory:{},shopChars:[],shopTimer:180,mutations:{},discoveredMutations:new Set(),tradeOfferChar:null,tradeReceiveCandidates:[],tradeReceiveSelected:null,cpuTradeOffer:null,discovered:new Set(),quests:{},achievements:new Set(),stats:{totalBuys:0,totalTrades:0,totalEarned:0,totalFusions:0,sessionDiscovers:0}};
+const SAVE_KEY='brainrot_v2';
+function saveGame(){try{const d={...state,discovered:[...state.discovered],achievements:[...state.achievements],mutations:state.mutations||{},discoveredMutations:[...(state.discoveredMutations||new Set())]};localStorage.setItem(SAVE_KEY,JSON.stringify(d));const el=document.getElementById('save-indicator');if(el){el.textContent='💾 セーブ済';el.style.color='var(--accent2)';}}catch(e){}}
+function loadGame(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;const d=JSON.parse(raw);state.money=d.money||500000;state.rate=d.rate||0;state.baseSlots=d.baseSlots||8;state.base=d.base||[];state.inventory=d.inventory||{};state.shopChars=d.shopChars||[];state.shopTimer=d.shopTimer||180;state.discovered=new Set(d.discovered||[]);state.quests=d.quests||{};state.achievements=new Set(d.achievements||[]);state.stats=d.stats||{totalBuys:0,totalTrades:0,totalEarned:0,totalFusions:0,sessionDiscovers:0};state.mutations=d.mutations||{};state.discoveredMutations=new Set(d.discoveredMutations||[]);return true;}catch(e){return false;}}
+function addToInventory(id,count=1){const wasNew=!state.discovered.has(id);state.inventory[id]=(state.inventory[id]||0)+count;state.discovered.add(id);if(wasNew)state.stats.sessionDiscovers=(state.stats.sessionDiscovers||0)+1;}
+function removeFromInventory(id,count=1){if(!state.inventory[id])return false;state.inventory[id]-=count;if(state.inventory[id]<=0)delete state.inventory[id];return true;}
+function fmtMoney(v){return v>=1e9?`$${(v/1e9).toFixed(1)}B`:v>=1e6?`$${(v/1e6).toFixed(1)}M`:v>=1e3?`$${(v/1e3).toFixed(1)}K`:`$${Math.floor(v)}`;}
+function fmtRate(v){return v>=1e6?`$${(v/1e6).toFixed(1)}M/s`:v>=1e3?`$${(v/1e3).toFixed(1)}K/s`:`$${v.toFixed(1)}/s`;}
+function fmtRateSm(v){return v>=1e6?`$${(v/1e6).toFixed(1)}M/s`:v>=1e3?`$${(v/1e3).toFixed(1)}K/s`:`$${v}/s`;}
+function updateMoneyDisplays(){['money-display','money-display2','money-display3','money-display4','money-display5','money-display6'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=fmtMoney(state.money);});['rate-display','rate-display2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=fmtRate(state.rate);});}
+function calcRate(){state.rate=state.base.reduce((s,b)=>{const c=CHARACTERS.find(x=>x.id===b.charId);if(!c)return s;const muts=getMutations(b.charId,b.slot);const mult=muts.reduce((m,mut)=>m*(mut?mut.mult:1.0),1.0);return s+c.rate*mult;},0);updateMoneyDisplays();}
+function initGame(){const loaded=loadGame();if(!loaded){addToInventory('tralalero',2);addToInventory('bombardino',1);addToInventory('chimpanzini',1);addToInventory('frigo',1);initQuests();}if(!state.shopChars||state.shopChars.length===0)refreshShop();calcRate();renderAll();setInterval(()=>{const e=state.rate;state.money+=e;state.stats.totalEarned=(state.stats.totalEarned||0)+e;updateMoneyDisplays();checkQuestProgress();},1000);setInterval(()=>{state.shopTimer--;if(state.shopTimer<=0){refreshShop();state.shopTimer=180;}updateTimerDisplay();},1000);setInterval(()=>saveGame(),30000);checkAchievements();}
+function renderBase(){const grid=document.getElementById('base-grid');grid.innerHTML='';document.getElementById('base-slot-count').textContent=`${state.base.length}/${state.baseSlots}`;for(let i=0;i<state.baseSlots;i++){const slot=document.createElement('div');slot.className='base-slot';const placed=state.base.find(b=>b.slot===i);if(placed){const ch=CHARACTERS.find(x=>x.id===placed.charId);if(!ch)continue;slot.classList.add('filled','border-'+ch.rarity);const muts=getMutations(ch.id,i);const mult=muts.reduce((m,mut)=>m*(mut?mut.mult:1.0),1.0);const displayRate=ch.rate*mult;const mutHtml=muts.length?muts.map(mut=>`<div style="font-size:7px;font-weight:700;color:${mut.color};text-shadow:0 0 6px ${mut.color};">${mut.name}</div>`).join(''):'';slot.innerHTML=`${svgChar(ch.id)}<div class="slot-name">${ch.name}</div><div class="slot-rate">${displayRate>=1000?fmtMoney(displayRate).replace('$','')+'/s':displayRate.toFixed(1)+'/s'}</div><div class="rarity-dot dot-${ch.rarity}"></div>${muts.length?`<div style="position:absolute;bottom:14px;left:0;right:0;text-align:center;">${mutHtml}</div>`:''}`;slot.onclick=()=>baseSlotClick(i,ch);}else{slot.innerHTML='<div style="font-size:24px;color:var(--muted)">＋</div><div style="font-size:9px;color:var(--muted)">配置</div>';slot.onclick=()=>openPlaceModal(i);}grid.appendChild(slot);}const cost=Math.floor(1e6*Math.pow(2,state.baseSlots-8));document.getElementById('expand-btn').textContent=`＋スロット追加 (${fmtMoney(cost)})`;}
+function expandBase(){const cost=Math.floor(1e6*Math.pow(2,state.baseSlots-8));if(state.money<cost){showToast('💰 お金が足りない！');return;}state.money-=cost;state.baseSlots+=4;renderBase();showToast('✅ スロットが4つ増えた！');checkAchievements();saveGame();}
+function baseSlotClick(slot,ch){openModal(`<div class="modal-header"><h3>🏰 ${ch.name}</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body">${svgChar(ch.id)}<div class="mb-name">${ch.name}</div><div class="mb-rarity r-${ch.rarity}">${RARITIES[ch.rarity].label}</div><div class="mb-rate">${fmtRateSm(ch.rate)}</div><div class="mb-desc">${ch.desc}</div><div class="modal-actions"><button class="mact-btn mact-danger" onclick="removeFromBase(${slot})">🗑 撤退させる</button><button class="mact-btn mact-secondary" onclick="closeModal()">閉じる</button></div></div>`);}
+function removeFromBase(slot){const idx=state.base.findIndex(b=>b.slot===slot);if(idx!==-1){const ch=CHARACTERS.find(x=>x.id===state.base[idx].charId);addToInventory(ch.id);clearMutationsForSlot(slot);state.base.splice(idx,1);calcRate();renderBase();renderInventory();closeModal();showToast(`↩ ${ch.name}を回収した`);saveGame();}}
+function openPlaceModal(slot){const available=Object.keys(state.inventory).filter(id=>( state.inventory[id]||0)>0);if(!available.length){showToast('📦 配置できるキャラがいない');return;}let html=`<div class="modal-header"><h3>キャラを配置</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body" style="width:100%"><div class="pick-grid">`;available.forEach(id=>{const ch=CHARACTERS.find(x=>x.id===id);if(!ch)return;html+=`<div class="pick-card" onclick="placeChar('${id}',${slot})">${svgChar(id)}<div class="pcn">${ch.name}</div><div class="pcr r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div></div>`;});html+=`</div></div>`;openModal(html);}
+function placeChar(charId,slot){if(state.base.find(b=>b.slot===slot))return;if((state.inventory[charId]||0)<=0){showToast('所持数が足りない！');return;}removeFromInventory(charId);state.base.push({charId,slot});calcRate();renderBase();renderInventory();closeModal();const ch=CHARACTERS.find(x=>x.id===charId);showToast(`✅ ${ch.name}を配置した！`);checkQuestProgress();saveGame();}
+function refreshShop(){const shopable=CHARACTERS.filter(c=>c.rarity!=='mythic');const weights={common:45,uncommon:30,rare:15,epic:7,legendary:3};const pool=shopable.flatMap(c=>Array(weights[c.rarity]||5).fill(c));const chosen=[];const used=new Set();let tries=0;while(chosen.length<5&&tries<200){tries++;const pick=pool[Math.floor(Math.random()*pool.length)];if(!used.has(pick.id)){chosen.push({...pick,price:pick.rate*200,sold:false});used.add(pick.id);}}state.shopChars=chosen;renderShop();}
+function renderShop(){const grid=document.getElementById('shop-grid');grid.innerHTML='';state.shopChars.forEach((ch,i)=>{const affordable=state.money>=ch.price;const card=document.createElement('div');card.className=`shop-card border-${ch.rarity}`;card.innerHTML=`${ch.sold?'<div class="sold-badge">SOLD</div>':''}${svgChar(ch.id)}<div class="char-name">${ch.name}</div><div class="char-rarity r-${ch.rarity}">${RARITIES[ch.rarity].label}</div><div class="char-rate">${fmtRateSm(ch.rate)}</div><button class="buy-btn" ${ch.sold||!affordable?'disabled':''} onclick="buyChar(${i})">${ch.sold?'売り切れ':fmtMoney(ch.price)}</button>`;grid.appendChild(card);});}
+function buyChar(i){const ch=state.shopChars[i];if(ch.sold||state.money<ch.price){showToast('💰 お金が足りない！');return;}state.money-=ch.price;addToInventory(ch.id);state.shopChars[i].sold=true;state.stats.totalBuys=(state.stats.totalBuys||0)+1;renderShop();updateMoneyDisplays();renderInventory();const mutRoll=rollMutation(0.01);if(mutRoll){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[ch.id]||0)>0){removeFromInventory(ch.id);state.base.push({charId:ch.id,slot:freeSlot});addMutation(ch.id,freeSlot,mutRoll);if(!state.discoveredMutations)state.discoveredMutations=new Set();state.discoveredMutations.add(mutRoll);calcRate();renderBase();renderInventory();showToast('✨ '+ch.name+' に '+MUTATIONS[mutRoll].name+' が発現！');}else{showToast('🎉 '+ch.name+' をゲット！');}}else{showToast('🎉 '+ch.name+' をゲット！');}checkQuestProgress();checkAchievements();saveGame();}
+function updateTimerDisplay(){const m=Math.floor(state.shopTimer/60),s=state.shopTimer%60;const el=document.getElementById('shop-timer');if(el)el.textContent=`${m}:${s.toString().padStart(2,'0')}`;}
+let invFilter='all';
+function filterInv(f,btn){invFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderInventory();}
+function renderInventory(){const grid=document.getElementById('inv-grid');grid.innerHTML='';const entries=Object.entries(state.inventory);if(!entries.length){grid.innerHTML='<div style="grid-column:span 4;color:var(--muted);text-align:center;padding:20px;font-size:12px">キャラがいない</div>';return;}let shown=0;entries.forEach(([id,count])=>{if(count<=0)return;const ch=CHARACTERS.find(x=>x.id===id);if(!ch)return;if(invFilter!=='all'&&ch.rarity!==invFilter)return;shown++;const inBase=state.base.find(b=>b.charId===id);const card=document.createElement('div');card.className=`inv-card border-${ch.rarity}${inBase?' in-base':''}`;card.innerHTML=`${count>1?`<div class="icount">×${count}</div>`:''}${svgChar(id)}<div class="iname">${ch.name}</div><div class="irarity r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div>`;card.onclick=()=>openCharDetail(ch);grid.appendChild(card);});if(!shown){grid.innerHTML='<div style="grid-column:span 4;color:var(--muted);text-align:center;padding:20px;font-size:12px">このレアリティのキャラがいない</div>';}}
+function openCharDetail(ch){const count=state.inventory[ch.id]||0;const inBaseCount=state.base.filter(b=>b.charId===ch.id).length;const canPlace=count>0;openModal(`<div class="modal-header"><h3>${ch.name}</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><div style="animation:float 3s ease-in-out infinite">${svgChar(ch.id)}</div><div class="mb-name">${ch.name}</div><div class="mb-rarity r-${ch.rarity}">${RARITIES[ch.rarity].label}</div><div class="mb-rate">${fmtRateSm(ch.rate)}</div><div class="mb-desc">${ch.desc}</div><div style="font-size:11px;color:var(--muted)">所持数: ${count}体${inBaseCount>0?' | 基地に'+inBaseCount+'体配置中':''}</div><div class="modal-actions">${canPlace?`<button class="mact-btn mact-primary" onclick="closeModal();placeToFreeSlot('${ch.id}')">🏰 基地に配置</button>`:'<div></div>'}<button class="mact-btn mact-secondary" onclick="closeModal()">閉じる</button></div></div>`);}
+function placeToFreeSlot(charId){if((state.inventory[charId]||0)<=0){showToast('所持数が足りない！');return;}const freeSlot=Array.from({length:state.baseSlots},(_,i)=>i).find(i=>!state.base.find(b=>b.slot===i));if(freeSlot===undefined){showToast('🏰 空きスロットがない！');return;}placeChar(charId,freeSlot);}
+let tradeOfferFilter='all';
+function renderTrade(){
+  const container=document.getElementById('offer-slots-container');
+  container.innerHTML='';
+  const myChars=Object.keys(state.inventory).filter(id=>state.inventory[id]>0);
+  if(!myChars.length){container.innerHTML='<div style="color:var(--muted);font-size:11px">キャラがいない</div>';renderReceiveCandidates();return;}
+  const filterBar=document.createElement('div');
+  filterBar.style.cssText='display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px;';
+  const rarities=['all','common','uncommon','rare','epic','legendary','mythic'];
+  const labels={all:'全部',common:'COM',uncommon:'UNC',rare:'RARE',epic:'EPIC',legendary:'LEG',mythic:'MYT'};
+  rarities.forEach(r=>{
+    const has=r==='all'||myChars.some(id=>{const ch=CHARACTERS.find(x=>x.id===id);return ch&&ch.rarity===r;});
+    if(!has)return;
+    const btn=document.createElement('button');
+    btn.textContent=labels[r];
+    const active=tradeOfferFilter===r;
+    btn.style.cssText='background:'+(active?'var(--accent2)':'var(--card)')+';color:'+(active?'#000':'var(--muted)')+';border:1px solid '+(active?'var(--accent2)':'var(--border)')+';border-radius:12px;padding:3px 8px;font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:\'M PLUS Rounded 1c\',sans-serif;flex-shrink:0;';
+    btn.onclick=(()=>{const rr=r;return ()=>{tradeOfferFilter=rr;renderTrade();};})();
+    filterBar.appendChild(btn);
+  });
+  container.appendChild(filterBar);
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:220px;overflow-y:auto;';
+  let shown=0;
+  myChars.forEach(id=>{
+    const ch=CHARACTERS.find(x=>x.id===id);if(!ch)return;
+    if(tradeOfferFilter!=='all'&&ch.rarity!==tradeOfferFilter)return;
+    const count=state.inventory[id]||0;
+    const selected=state.tradeOfferChar===id;
+    const card=document.createElement('div');
+    card.className='recv-cand'+(selected?' selected':'');
+    card.style.cssText='position:relative;';
+    card.innerHTML=(count>1?`<div style="position:absolute;top:2px;right:2px;background:var(--accent);color:#fff;font-size:7px;font-weight:700;border-radius:6px;padding:0 3px;z-index:1;">x${count}</div>`:'')+svgChar(id)+`<div class="rcn">${ch.name}</div><div class="rcr r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div><div class="rcrate">${fmtRateSm(ch.rate)}</div>`;
+    card.onclick=(()=>{const cid=id;return ()=>selectOfferChar(cid);})();
+    grid.appendChild(card);shown++;
+  });
+  if(!shown){const msg=document.createElement('div');msg.style.cssText='grid-column:span 3;color:var(--muted);font-size:10px;text-align:center;padding:10px;';msg.textContent='このレアリティのキャラがいない';grid.appendChild(msg);}
+  container.appendChild(grid);
+  renderReceiveCandidates();
+}
+function selectOfferChar(charId){if(state.tradeOfferChar===charId){state.tradeOfferChar=null;state.tradeReceiveCandidates=[];state.tradeReceiveSelected=null;}else{state.tradeOfferChar=charId;generateReceiveCandidates(charId);}renderTrade();}
+function generateReceiveCandidates(offerCharId){const ch=CHARACTERS.find(x=>x.id===offerCharId);if(!ch){state.tradeReceiveCandidates=[];return;}const rarityOrder=['common','uncommon','rare','epic','legendary','mythic'];const myRarityIdx=rarityOrder.indexOf(ch.rarity);const pool=CHARACTERS.filter(c=>c.rarity!=='mythic'&&c.id!==offerCharId&&Math.abs(rarityOrder.indexOf(c.rarity)-myRarityIdx)<=1);const shuffled=[...pool].sort(()=>Math.random()-.5).slice(0,6);state.tradeReceiveCandidates=shuffled;state.tradeReceiveSelected=null;}
+function renderReceiveCandidates(){const area=document.getElementById('recv-candidates-area');const hint=document.getElementById('recv-hint');area.innerHTML='';if(!state.tradeOfferChar||!state.tradeReceiveCandidates.length){hint.style.display='';hint.textContent='渡すキャラを選ぶと候補が出る';return;}hint.style.display='none';const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:6px;';state.tradeReceiveCandidates.forEach(ch=>{const card=document.createElement('div');const selected=state.tradeReceiveSelected===ch.id;card.className='recv-cand'+(selected?' selected':'');card.innerHTML=`${svgChar(ch.id)}<div class="rcn">${ch.name}</div><div class="rcr r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div><div class="rcrate">${fmtRateSm(ch.rate)}</div>`;card.onclick=()=>{state.tradeReceiveSelected=ch.id;renderReceiveCandidates();};grid.appendChild(card);});area.appendChild(grid);}
+function executePlayerTrade(){if(!state.tradeOfferChar){showToast('渡すキャラを選んでください');return;}if(!state.tradeReceiveSelected){showToast('もらうキャラを選んでください');return;}if(!state.inventory[state.tradeOfferChar]||state.inventory[state.tradeOfferChar]<=0){showToast('そのキャラを持っていない！');return;}const giveChar=CHARACTERS.find(x=>x.id===state.tradeOfferChar);const getChar=CHARACTERS.find(x=>x.id===state.tradeReceiveSelected);removeFromInventory(state.tradeOfferChar);addToInventory(state.tradeReceiveSelected);state.tradeOfferChar=null;state.tradeReceiveCandidates=[];state.tradeReceiveSelected=null;state.stats.totalTrades=(state.stats.totalTrades||0)+1;renderTrade();renderInventory();calcRate();showToast(`🔄 ${giveChar.name} → ${getChar.name} トレード成功！`);checkQuestProgress();checkAchievements();saveGame();}
+function generateCPUTrade(){const myChars=Object.keys(state.inventory).filter(id=>state.inventory[id]>0);if(!myChars.length){showToast('キャラがいない');return;}const wantId=myChars[Math.floor(Math.random()*myChars.length)];const wantChar=CHARACTERS.find(x=>x.id===wantId);const rarityOrder=['common','uncommon','rare','epic','legendary'];const myRarityIdx=rarityOrder.indexOf(wantChar.rarity);const offerPool=CHARACTERS.filter(c=>c.rarity!=='mythic'&&c.id!==wantId&&Math.abs(rarityOrder.indexOf(c.rarity)-myRarityIdx)<=1);const offerChar=offerPool[Math.floor(Math.random()*offerPool.length)];
+// 25%の確率でCPUが変異付きキャラを提示する（同じ変異は付かない、何個でもOK）
+let offerMutations=[];
+if(Math.random()<0.25){
+  const allMuts=[...MUTATION_POOL];
+  // シャッフルしてランダムな個数（1〜全種）をピック、各変異は一意
+  for(let i=allMuts.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[allMuts[i],allMuts[j]]=[allMuts[j],allMuts[i]];}
+  const count=1+Math.floor(Math.random()*Math.random()*allMuts.length); // 1個が多め、稀に多数
+  offerMutations=allMuts.slice(0,count);
+}
+state.cpuTradeOffer={wantId,wantChar,offerChar,offerMutations};renderCPUTrade();}
+function renderCPUTrade(){const area=document.getElementById('cpu-trade-area');if(!state.cpuTradeOffer){area.innerHTML='<div style="color:var(--muted);font-size:11px;text-align:center;padding:10px">ボタンを押してオファーを生成</div>';return;}const{wantChar,offerChar,offerMutations=[]}=state.cpuTradeOffer;const mutMult=offerMutations.reduce((m,id)=>m*(MUTATIONS[id]?MUTATIONS[id].mult:1),1);const effectiveRate=offerChar.rate*mutMult;const diff=effectiveRate-wantChar.rate;const diffStr=diff>=0?`<span style="color:#44ff88">+${fmtRateSm(diff)}</span>`:`<span style="color:#ff4444">${fmtRateSm(diff)}</span>`;const mutBadges=offerMutations.length?offerMutations.map(id=>MUTATIONS[id]?`<div style="font-size:7px;font-weight:700;color:${MUTATIONS[id].color};text-shadow:0 0 4px ${MUTATIONS[id].color}">${MUTATIONS[id].name}</div>`:'').join(''):'';const mutLabel=offerMutations.length?`<div style="margin-top:3px">${mutBadges}</div>`:'';area.innerHTML=`<div style="background:var(--card);border-radius:10px;padding:10px;border:1px solid var(--border)"><div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center"><div><div style="font-size:9px;color:var(--muted);margin-bottom:4px">CPUが欲しいもの</div><div style="background:var(--panel);border-radius:8px;padding:4px;border:1px solid var(--accent);display:inline-block">${svgChar(wantChar.id)}<div style="font-size:7px;text-align:center">${wantChar.name}</div><div style="font-size:7px;color:var(--accent3);text-align:center">${fmtRateSm(wantChar.rate)}</div></div></div><div style="font-size:20px;color:var(--muted)">⇄</div><div><div style="font-size:9px;color:var(--muted);margin-bottom:4px">CPUが出すもの${offerMutations.length?'<span style="color:#aa44ff;font-weight:900"> 🧬変異付！</span>':''}</div><div style="background:var(--panel);border-radius:8px;padding:4px;border:1px solid ${offerMutations.length?'#aa44ff':'var(--accent2)'};display:inline-block">${svgChar(offerChar.id)}<div style="font-size:7px;text-align:center">${offerChar.name}</div><div style="font-size:7px;color:var(--accent3);text-align:center">${offerMutations.length?fmtRateSm(effectiveRate)+' (変異込)':fmtRateSm(offerChar.rate)}</div>${mutLabel}</div></div></div><div class="cpu-trade-rates"><div class="rate-pill"><div class="rp-label">あなたが失う収益</div><div class="rp-val">${fmtRateSm(wantChar.rate)}</div></div><div class="rate-pill"><div class="rp-label">あなたが得る収益</div><div class="rp-val" style="${offerMutations.length?'color:#aa44ff':''}">${fmtRateSm(effectiveRate)}</div></div></div><div style="text-align:center;font-size:10px;font-weight:700;margin-top:6px">収益差: ${diffStr}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px"><button class="mact-btn mact-primary" onclick="acceptCPUTrade()">✅ 承認</button><button class="mact-btn mact-danger" onclick="rejectCPUTrade()">❌ 拒否</button></div></div>`;}
+function acceptCPUTrade(){const{wantId,wantChar,offerChar,offerMutations=[]}=state.cpuTradeOffer;if(!state.inventory[wantId]||state.inventory[wantId]<=0){showToast(`${wantChar.name}がいない！`);return;}removeFromInventory(wantId);addToInventory(offerChar.id);
+// 変異がある場合は基地の空きスロットに配置して変異を付与
+if(offerMutations.length){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined){removeFromInventory(offerChar.id);state.base.push({charId:offerChar.id,slot:freeSlot});offerMutations.forEach(m=>{addMutation(offerChar.id,freeSlot,m);});if(!state.discoveredMutations)state.discoveredMutations=new Set();offerMutations.forEach(m=>state.discoveredMutations.add(m));renderBase();}}
+state.cpuTradeOffer=null;state.stats.totalTrades=(state.stats.totalTrades||0)+1;renderCPUTrade();renderInventory();calcRate();const mutMsg=offerMutations.length?' 🧬変異付き！':'';showToast(`🎉 ${wantChar.name}→${offerChar.name}${mutMsg} CPUトレード成功！`);checkQuestProgress();checkAchievements();saveGame();}
+function rejectCPUTrade(){state.cpuTradeOffer=null;renderCPUTrade();showToast('❌ オファーを断った');}
+function renderFusion(){const recipesDiv=document.getElementById('fusion-recipes');recipesDiv.innerHTML='';FUSION_RECIPES.forEach(recipe=>{const resultChar=CHARACTERS.find(c=>c.id===recipe.result);let canFuse=true;let missingParts=[];recipe.ingredients.forEach(ing=>{const have=state.inventory[ing.id]||0;if(have<ing.count){canFuse=false;missingParts.push(ing);}});const div=document.createElement('div');div.className='fusion-recipe';let ingsHtml=recipe.ingredients.map(ing=>{const ch=CHARACTERS.find(c=>c.id===ing.id);const have=state.inventory[ing.id]||0;const ok=have>=ing.count;return `<div class="fusion-ing" style="${ok?'border-color:var(--accent2)':''}">${svgChar(ing.id)}<div class="fin" style="${ok?'color:var(--accent2)':''}">${ch?ch.name:'?'}</div><div class="fic">${have}/${ing.count}</div></div>`;}).join('<div style="font-size:14px;color:var(--muted);align-self:center">＋</div>');div.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-size:11px;font-weight:700">✨ ${recipe.name}</div></div><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:8px">${ingsHtml}</div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div class="fusion-result"><div style="animation:float 3s ease-in-out infinite">${svgChar(resultChar.id)}</div><div class="fusion-result-info"><div class="frn r-${resultChar.rarity}">${resultChar.name}</div><div class="frr r-${resultChar.rarity}">${RARITIES[resultChar.rarity].label}</div><div class="frrate">${fmtRateSm(resultChar.rate)}</div></div></div><button class="fusion-btn" ${canFuse?'':'disabled'} onclick="executeFusion('${recipe.id}')">${canFuse?'⚗️ 融合！':'素材不足'}</button></div>${!canFuse?`<div class="fusion-missing">不足: ${missingParts.map(p=>{const c=CHARACTERS.find(x=>x.id===p.id);return c?c.name:'?';}).join(', ')}</div>`:''}`;recipesDiv.appendChild(div);});const upgradeDiv=document.getElementById('upgrade-fusion');upgradeDiv.innerHTML='';const upgradeable=[];Object.entries(state.inventory).forEach(([id,count])=>{if(count>=3){const ch=CHARACTERS.find(c=>c.id===id);if(ch&&ch.rarity!=='legendary'&&ch.rarity!=='mythic')upgradeable.push({ch,count});}});if(!upgradeable.length){upgradeDiv.innerHTML='<div style="color:var(--muted);font-size:11px;text-align:center;padding:10px">同じキャラを3体以上持つと融合可能！</div>';return;}const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(2,1fr);gap:8px;';upgradeable.forEach(({ch,count})=>{const nextRarity=RARITY_ORDER[RARITY_ORDER.indexOf(ch.rarity)+1];const nextRarityLabel=RARITIES[nextRarity]?.label||'???';const card=document.createElement('div');card.className='fusion-recipe';card.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><div style="position:relative;flex-shrink:0">${svgChar(ch.id)}<div style="position:absolute;bottom:0;right:0;background:var(--accent);color:#fff;font-size:8px;border-radius:6px;padding:0 3px">×3</div></div><div><div style="font-size:10px;font-weight:700">${ch.name}</div><div style="font-size:8px;color:var(--muted)">所持: ${count}体</div><div style="font-size:8px;margin-top:2px">→ <span class="r-${nextRarity}">${nextRarityLabel}</span>ランダム</div></div></div><button class="fusion-btn" style="margin-top:8px;width:100%" onclick="executeUpgradeFusion('${ch.id}')">⬆️ アップグレード融合</button>`;grid.appendChild(card);});upgradeDiv.appendChild(grid);}
+function executeFusion(recipeId){const recipe=FUSION_RECIPES.find(r=>r.id===recipeId);if(!recipe)return;let canFuse=true;recipe.ingredients.forEach(ing=>{if((state.inventory[ing.id]||0)<ing.count)canFuse=false;});if(!canFuse){showToast('素材が足りない！');return;}
+// 素材の変異を収集
+const ingredientMuts=[];recipe.ingredients.forEach(ing=>{const baseMuts=getIngredientMutations(ing.id);baseMuts.forEach(m=>{if(!ingredientMuts.includes(m))ingredientMuts.push(m);});});
+recipe.ingredients.forEach(ing=>{for(let i=0;i<ing.count;i++)removeFromInventory(ing.id);});state.inventory[recipe.result]=(state.inventory[recipe.result]||0)+1;state.discovered.add(recipe.result);state.stats.totalFusions=(state.stats.totalFusions||0)+1;const resultChar=CHARACTERS.find(c=>c.id===recipe.result);
+// 付与する変異を決定: 素材変異70%継承 + ベース30%でランダム変異
+const finalMuts=[];ingredientMuts.forEach(m=>{if(Math.random()<0.70)finalMuts.push(m);});const baseMut=rollMutation(0.30);if(baseMut&&!finalMuts.includes(baseMut))finalMuts.push(baseMut);
+let mutLabel='';if(finalMuts.length){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[recipe.result]||0)>0){removeFromInventory(recipe.result);state.base.push({charId:recipe.result,slot:freeSlot});finalMuts.forEach(m=>addMutation(recipe.result,freeSlot,m));state.discoveredMutations=state.discoveredMutations||new Set();finalMuts.forEach(m=>state.discoveredMutations.add(m));mutLabel=finalMuts.map(m=>`<div class="mb-rarity" style="color:${MUTATIONS[m].color}">${MUTATIONS[m].name} が発現！</div>`).join('');renderBase();}}renderFusion();renderInventory();calcRate();openModal(`<div class="modal-header"><h3>🌟 ミシック召喚成功！</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><div style="animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 20px #ff3366)">${svgChar(resultChar.id)}</div><div class="mb-name r-mythic" style="font-size:20px">${resultChar.name}</div><div class="mb-rarity r-mythic">✨ MYTHIC ✨</div>${mutLabel}<div class="mb-rate">${fmtRateSm(resultChar.rate)}</div><div class="mb-desc">${resultChar.desc}</div><button class="mact-btn mact-primary" style="width:100%;margin-top:8px" onclick="closeModal()">🎉 すごい！</button></div>`);checkAchievements();saveGame();}
+function executeUpgradeFusion(charId){const ch=CHARACTERS.find(c=>c.id===charId);if(!ch||(state.inventory[charId]||0)<3){showToast('3体必要！');return;}const nextRarity=RARITY_ORDER[RARITY_ORDER.indexOf(ch.rarity)+1];const nextPool=CHARACTERS.filter(c=>c.rarity===nextRarity);if(!nextPool.length){showToast('次のレアリティがない！');return;}const result=nextPool[Math.floor(Math.random()*nextPool.length)];for(let i=0;i<3;i++)removeFromInventory(charId);addToInventory(result.id);state.stats.totalFusions=(state.stats.totalFusions||0)+1;renderFusion();renderInventory();calcRate();showToast(`⬆️ ${ch.name}×3 → ${result.name}！`);checkAchievements();saveGame();}
+function initQuests(){state.quests={};DAILY_QUESTS_DEF.forEach(q=>{state.quests[q.id]={progress:0,claimed:false};});}
+function checkQuestProgress(){if(!state.quests||Object.keys(state.quests).length===0)initQuests();let changed=false;DAILY_QUESTS_DEF.forEach(q=>{if(state.quests[q.id]?.claimed)return;let prog=state.quests[q.id]?.progress||0;let newProg=prog;if(q.type==='buy')newProg=Math.min(q.target,state.stats.totalBuys||0);if(q.type==='trade')newProg=Math.min(q.target,state.stats.totalTrades||0);if(q.type==='earn')newProg=Math.min(q.target,state.stats.totalEarned||0);if(q.type==='discover')newProg=Math.min(q.target,state.stats.sessionDiscovers||0);if(q.type==='base')newProg=Math.min(q.target,state.base.length||0);if(q.type==='fusion')newProg=Math.min(q.target,state.stats.totalFusions||0);if(newProg!==prog){state.quests[q.id].progress=newProg;changed=true;}});if(changed)renderQuests();updateQuestBadge();}
+function updateQuestBadge(){const claimable=DAILY_QUESTS_DEF.filter(q=>{const qs=state.quests[q.id];return qs&&!qs.claimed&&qs.progress>=q.target;}).length;const btn=document.getElementById('nav-quest');let badge=btn.querySelector('.quest-badge');if(claimable>0){if(!badge){badge=document.createElement('div');badge.className='quest-badge';btn.appendChild(badge);}badge.textContent=claimable;}else if(badge)badge.remove();}
+function claimQuest(questId){const q=DAILY_QUESTS_DEF.find(x=>x.id===questId);if(!q)return;const qs=state.quests[questId];if(!qs||qs.claimed||qs.progress<q.target)return;qs.claimed=true;state.money+=q.reward;updateMoneyDisplays();renderQuests();updateQuestBadge();showToast(`🎁 ${q.name} 達成！ ${fmtMoney(q.reward)} 獲得！`);saveGame();}
+function renderQuests(){if(!state.quests||Object.keys(state.quests).length===0)initQuests();const div=document.getElementById('daily-quests');div.innerHTML='';DAILY_QUESTS_DEF.forEach(q=>{const qs=state.quests[q.id]||{progress:0,claimed:false};const prog=Math.min(qs.progress,q.target);const pct=Math.round(prog/q.target*100);const done=qs.claimed;const canClaim=!done&&prog>=q.target;const item=document.createElement('div');item.className='quest-item'+(done?' done':'');item.innerHTML=`<div class="quest-icon">${q.icon}</div><div class="quest-info"><div class="quest-name">${q.name}${done?' ✅':''}</div><div class="quest-desc">${q.desc}</div><div class="quest-progress"><div class="quest-bar" style="width:${pct}%"></div></div><div style="font-size:8px;color:var(--muted);margin-top:2px">${q.type==='earn'?fmtMoney(prog)+'/'+fmtMoney(q.target):prog+'/'+q.target}</div></div><div class="quest-reward">${fmtMoney(q.reward)}</div>${canClaim?`<button class="claim-btn" onclick="claimQuest('${q.id}')">受取</button>`:''}`;div.appendChild(item);});renderAchievements();}
+function checkAchievements(){let gained=false;ACHIEVEMENTS_DEF.forEach(a=>{if(!state.achievements.has(a.id)&&a.condition(state)){state.achievements.add(a.id);gained=true;showToast(`🏆 実績解除: ${a.name}`);}});if(gained){renderAchievements();saveGame();}}
+function renderAchievements(){const grid=document.getElementById('achievements');if(!grid)return;grid.innerHTML='';ACHIEVEMENTS_DEF.forEach(a=>{const unlocked=state.achievements.has(a.id);const card=document.createElement('div');card.className='ach-card'+(unlocked?' unlocked':' locked-ach');card.innerHTML=`<div class="ach-icon">${unlocked?a.icon:'🔒'}</div><div class="ach-info"><div class="an">${a.name}</div><div class="ad">${a.desc}</div></div>`;grid.appendChild(card);});}
+function renderIndex(){const total=CHARACTERS.length,found=state.discovered.size;const byR={legendary:0,mythic:0};state.discovered.forEach(id=>{const c=CHARACTERS.find(x=>x.id===id);if(c&&byR[c.rarity]!==undefined)byR[c.rarity]++;});if(!state.discoveredMutations)state.discoveredMutations=new Set();const mutFound=state.discoveredMutations.size;const mutTotal=Object.keys(MUTATIONS).length;document.getElementById('index-stats').innerHTML=`<div class="stat-box"><div class="sv">${found}/${total}</div><div class="sk">図鑑達成</div></div><div class="stat-box"><div class="sv r-legendary">${byR.legendary}</div><div class="sk">レジェンダリー</div></div><div class="stat-box"><div class="sv r-mythic">${byR.mythic}</div><div class="sk">ミシック</div></div><div class="stat-box" style="grid-column:span 3"><div class="sv" style="color:#aa44ff">${mutFound}/${mutTotal}</div><div class="sk">🧬 変異発見数</div></div>`;const order=['common','uncommon','rare','epic','legendary','mythic'];const sorted=[...CHARACTERS].sort((a,b)=>order.indexOf(a.rarity)-order.indexOf(b.rarity));const grid=document.getElementById('index-grid');grid.innerHTML='';sorted.forEach(ch=>{const isFound=state.discovered.has(ch.id);const card=document.createElement('div');card.className=`index-card border-${ch.rarity}${isFound?'':' locked'}`;const mythicHint=ch.rarity==='mythic'&&!isFound?'<div style="font-size:7px;color:var(--accent);margin-top:2px">⚗️融合で入手</div>':'';card.innerHTML=`${isFound?'':'<div class="lock-icon">🔒</div>'}${svgChar(isFound?ch.id:'none')}<div class="idn">${isFound?ch.name:'???'}</div><div class="idr r-${ch.rarity}">${RARITIES[ch.rarity].label}</div>${isFound?`<div class="idrate">${fmtRateSm(ch.rate)}</div>`:mythicHint}`;if(isFound)card.onclick=()=>openCharDetail(ch);grid.appendChild(card);});
+// 変異図鑑
+if(!state.discoveredMutations)state.discoveredMutations=new Set();
+const mutGrid=document.getElementById('mutation-index-grid');mutGrid.innerHTML='';
+const allMutIds=Object.keys(MUTATIONS);
+allMutIds.forEach(mid=>{const mut=MUTATIONS[mid];const found=state.discoveredMutations.has(mid);const card=document.createElement('div');card.style.cssText=`background:var(--card);border-radius:10px;padding:10px;border:2px solid ${found?mut.color:'var(--border)'};display:flex;gap:8px;align-items:center;${found?'':'opacity:.4;filter:grayscale(.8);'}`;card.innerHTML=`<div style="font-size:28px;flex-shrink:0">${found?mut.name.split(' ')[0]:'🔒'}</div><div><div style="font-size:11px;font-weight:900;color:${found?mut.color:'var(--muted)'}">${found?mut.name:'??? 変異'}</div>${found?`<div style="font-size:9px;color:var(--muted);margin-top:2px">${mut.desc}</div><div style="font-size:10px;font-weight:700;color:var(--accent3);margin-top:2px">×${mut.mult} 収益倍率</div>`:'<div style="font-size:9px;color:var(--muted);margin-top:2px">未発見</div>'}`;mutGrid.appendChild(card);});}
+function openModal(html){document.getElementById('modal-content').innerHTML=html;document.getElementById('modal-overlay').style.display='flex';}
+function closeModal(e){if(e&&e.target!==document.getElementById('modal-overlay'))return;document.getElementById('modal-overlay').style.display='none';}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function showPage(name){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');document.getElementById('nav-'+name).classList.add('active');if(name==='inventory')renderInventory();if(name==='base')renderBase();if(name==='index')renderIndex();if(name==='trade'){renderTrade();renderCPUTrade();}if(name==='shop')renderShop();if(name==='fusion')renderFusion();if(name==='quest'){renderQuests();renderAchievements();}}
+function renderAll(){renderBase();renderShop();renderInventory();renderIndex();renderTrade();renderCPUTrade();renderFusion();renderQuests();updateMoneyDisplays();updateTimerDisplay();checkQuestProgress();}
+
+// ===== MUTATIONS =====
+const MUTATIONS = {
+  blaze:    {id:'blaze',    name:'🔥 炎熱変異',   color:'#ff4400', desc:'収益 ×3.0',  mult:3.0},
+  frost:    {id:'frost',    name:'❄️ 氷結変異',   color:'#44ccff', desc:'収益 ×2.5',  mult:2.5},
+  thunder:  {id:'thunder',  name:'⚡ 雷電変異',   color:'#ffdd00', desc:'収益 ×2.8',  mult:2.8},
+  shadow:   {id:'shadow',   name:'🌑 暗黒変異',   color:'#8844ff', desc:'収益 ×3.5',  mult:3.5},
+  cosmic:   {id:'cosmic',   name:'🌌 宇宙変異',   color:'#ff3366', desc:'収益 ×5.0',  mult:5.0},
+  titan:    {id:'titan',    name:'💪 タイタン変異',color:'#ff8800', desc:'収益 ×4.0',  mult:4.0},
+  void:     {id:'void',     name:'🕳️ 虚空変異',  color:'#220044', desc:'収益 ×6.0',  mult:6.0},
+  rainbow:  {id:'rainbow',  name:'🌈 虹色変異',   color:'#ff88cc', desc:'収益 ×2.0',  mult:2.0},
+};
+const MUTATION_POOL = Object.keys(MUTATIONS);
+// キャラ変異: state.mutations = { "charId_slotIndex": [mutationId, ...] } (複数対応)
+// 変異のチャンス: ショップで購入時1%、融合時70%(素材に変異がある場合)
+function getMutations(charId, slot) {
+  if(!state.mutations) return [];
+  const v = state.mutations[charId+'_'+slot];
+  if(!v) return [];
+  // 旧形式(string)を配列に変換
+  if(typeof v === 'string') return [MUTATIONS[v]].filter(Boolean);
+  return v.map(id=>MUTATIONS[id]).filter(Boolean);
+}
+// 後方互換: 単一変異取得（基地表示用の最初の変異）
+function getMutation(charId, slot) {
+  const muts = getMutations(charId, slot);
+  return muts.length ? muts[0] : null;
+}
+function addMutation(charId, slot, mutId) {
+  if(!state.mutations) state.mutations = {};
+  const key = charId+'_'+slot;
+  if(!state.mutations[key]) state.mutations[key] = [];
+  // 旧形式を配列に変換
+  if(typeof state.mutations[key] === 'string') state.mutations[key] = [state.mutations[key]];
+  if(!state.mutations[key].includes(mutId)) state.mutations[key].push(mutId);
+}
+function setMutation(charId, slot, mutId) {
+  if(!state.mutations) state.mutations = {};
+  if(mutId) state.mutations[charId+'_'+slot] = [mutId];
+  else delete state.mutations[charId+'_'+slot];
+}
+function clearMutationsForSlot(slot) {
+  if(!state.mutations) return;
+  Object.keys(state.mutations).forEach(k=>{ if(k.endsWith('_'+slot)) delete state.mutations[k]; });
+}
+function rollMutation(chance) {
+  if(Math.random() < chance) return MUTATION_POOL[Math.floor(Math.random()*MUTATION_POOL.length)];
+  return null;
+}
+// 素材キャラが持つ変異リストを取得（インベントリ内なのでスロット不明→mutations全体から検索）
+function getIngredientMutations(charId) {
+  // インベントリのキャラには変異情報がないので融合時に基地のものを参照
+  // 基地のキャラから変異を収集
+  const result = [];
+  if(!state.mutations) return result;
+  Object.entries(state.mutations).forEach(([key, val]) => {
+    const [cid] = key.split('_');
+    if(cid === charId) {
+      const arr = typeof val === 'string' ? [val] : val;
+      arr.forEach(m=>{ if(!result.includes(m)) result.push(m); });
+    }
+  });
+  return result;
+}
+function calcRate(){
+  state.rate=state.base.reduce((s,b)=>{
+    const c=CHARACTERS.find(x=>x.id===b.charId);
+    if(!c) return s;
+    const mut=getMutation(b.charId, b.slot);
+    return s + c.rate * (mut ? mut.mult : 1.0);
+  },0);
+  updateMoneyDisplays();
+}
+
+// ===== ADMIN PANEL =====
+const ADMIN_PW='TTJP';
+let adminKeyBuffer='';
+let adminTapCount=0, adminTapTimer=null;
+
+function adminPromptPassword(cb) {
+  // パスワード入力モーダルを自前で作る（promptはスマホで動かないことがある）
+  const existing = document.getElementById('admin-pw-overlay');
+  if(existing) existing.remove();
+  const ov = document.createElement('div');
+  ov.id = 'admin-pw-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:600;display:flex;align-items:center;justify-content:center;padding:24px;';
+  ov.innerHTML = `
+    <div style="background:#0a0a18;border:2px solid #ff3366;border-radius:16px;padding:24px;width:100%;max-width:300px;display:flex;flex-direction:column;gap:14px;align-items:center;">
+      <div style="font-size:18px;font-weight:900;color:#ff3366;">🔐 管理者認証</div>
+      <div style="font-size:11px;color:#6060aa;">パスワードを入力してください</div>
+      <input id="admin-pw-input" type="password" placeholder="パスワード"
+        style="width:100%;background:#1a1a35;border:2px solid #2a2a50;color:#e0e0ff;border-radius:8px;padding:10px 12px;font-size:16px;outline:none;text-align:center;letter-spacing:4px;"
+        autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;">
+        <button onclick="document.getElementById('admin-pw-overlay').remove()"
+          style="background:#1a1a35;border:1px solid #2a2a50;color:#e0e0ff;border-radius:8px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;">キャンセル</button>
+        <button id="admin-pw-confirm"
+          style="background:#ff3366;border:none;color:#fff;border-radius:8px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;">認証</button>
+      </div>
+      <div id="admin-pw-err" style="font-size:10px;color:#ff3366;min-height:14px;"></div>
+    </div>`;
+  document.body.appendChild(ov);
+  const input = document.getElementById('admin-pw-input');
+  const confirm = document.getElementById('admin-pw-confirm');
+  const err = document.getElementById('admin-pw-err');
+  setTimeout(()=>input.focus(), 100);
+  function tryAuth() {
+    if(input.value.toUpperCase() === ADMIN_PW) {
+      ov.remove();
+      cb();
+    } else {
+      err.textContent = '❌ パスワードが違います';
+      input.value = '';
+      input.style.borderColor = '#ff3366';
+      setTimeout(()=>{ input.style.borderColor='#2a2a50'; err.textContent=''; }, 1500);
+    }
+  }
+  confirm.addEventListener('click', tryAuth);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') tryAuth(); });
+}
+
+function openAdminPanel(){
+  const existing = document.getElementById('admin-overlay');
+  if(existing) existing.remove();
+  const overlay=document.createElement('div');
+  overlay.id='admin-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;display:flex;align-items:center;justify-content:center;padding:12px;';
+
+  const mutOptions = MUTATION_POOL.map(mid=>`<option value="${mid}">${MUTATIONS[mid].name} (${MUTATIONS[mid].desc})</option>`).join('');
+  const charOptions = CHARACTERS.map(c=>`<option value="${c.id}">[${c.rarity.substring(0,3).toUpperCase()}] ${c.name}</option>`).join('');
+
+  overlay.innerHTML = `
+  <div style="background:#0a0a18;border:2px solid #ff3366;border-radius:16px;width:100%;max-width:380px;max-height:92vh;overflow-y:auto;overflow-x:hidden;">
+    <div style="padding:12px 14px;border-bottom:1px solid #2a2a50;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#0a0a18;z-index:1;">
+      <div style="font-size:15px;font-weight:900;color:#ff3366;">🔐 ADMIN PANEL</div>
+      <button onclick="document.getElementById('admin-overlay').remove()" style="background:#ff3366;color:#fff;border:none;border-radius:6px;width:28px;height:28px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div style="padding:14px;display:flex;flex-direction:column;gap:12px;">
+
+      <div style="background:#13132a;border:1px solid #2a2a50;border-radius:10px;padding:10px;">
+        <div style="font-size:11px;color:#6060aa;font-weight:700;margin-bottom:8px;">💰 お金を追加</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+          ${[1e3,1e4,1e5,1e6,1e7,1e8].map(v=>`<button class="adm-btn" onclick="adminAddMoney(${v})">+${fmtMoney(v)}</button>`).join('')}
+        </div>
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <input id="adm-custom-money" type="number" inputmode="numeric" placeholder="カスタム金額"
+            style="flex:1;background:#1a1a35;border:1px solid #2a2a50;color:#e0e0ff;border-radius:6px;padding:6px 8px;font-size:12px;outline:none;min-width:0;">
+          <button class="adm-btn" onclick="adminAddMoney(+document.getElementById('adm-custom-money').value||0)">追加</button>
+        </div>
+      </div>
+
+      <div style="background:#13132a;border:1px solid #2a2a50;border-radius:10px;padding:10px;">
+        <div style="font-size:11px;color:#6060aa;font-weight:700;margin-bottom:8px;">🎁 キャラ付与 + 変異設定</div>
+        <div style="margin-bottom:6px;">
+          <div style="font-size:9px;color:#6060aa;margin-bottom:3px;">キャラ選択</div>
+          <select id="adm-char-sel"
+            style="width:100%;background:#1a1a35;border:1px solid #2a2a50;color:#e0e0ff;border-radius:6px;padding:6px 8px;font-size:11px;outline:none;">
+            ${charOptions}
+          </select>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <div style="flex:1;">
+            <div style="font-size:9px;color:#6060aa;margin-bottom:3px;">変異（オプション）</div>
+            <select id="adm-mut-sel"
+              style="width:100%;background:#1a1a35;border:1px solid #2a2a50;color:#e0e0ff;border-radius:6px;padding:6px 8px;font-size:11px;outline:none;">
+              <option value="">変異なし</option>
+              ${mutOptions}
+            </select>
+          </div>
+          <div>
+            <div style="font-size:9px;color:#6060aa;margin-bottom:3px;">個数</div>
+            <input id="adm-char-count" type="number" inputmode="numeric" value="1" min="1" max="99"
+              style="width:52px;background:#1a1a35;border:1px solid #2a2a50;color:#e0e0ff;border-radius:6px;padding:6px;font-size:12px;outline:none;text-align:center;">
+          </div>
+        </div>
+        <button class="adm-btn" style="width:100%;margin-bottom:6px;" onclick="adminGiveChar()">🎁 付与する</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <button class="adm-btn" onclick="adminGiveAll('legendary')">全レジェ付与</button>
+          <button class="adm-btn adm-gold" onclick="adminGiveAll('mythic')">全ミシック付与</button>
+          <button class="adm-btn" onclick="adminGiveAll('epic')">全エピック付与</button>
+          <button class="adm-btn" onclick="adminGiveRandom(10)">ランダム10体</button>
+        </div>
+      </div>
+
+      <div style="background:#13132a;border:1px solid #2a2a50;border-radius:10px;padding:10px;">
+        <div style="font-size:11px;color:#6060aa;font-weight:700;margin-bottom:8px;">⚙️ ゲーム操作</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <button class="adm-btn" onclick="adminRefreshShop()">🛒 ショップ更新</button>
+          <button class="adm-btn" onclick="adminCompleteQuests()">📋 全クエスト達成</button>
+          <button class="adm-btn" onclick="adminUnlockAch()">🏆 全実績解除</button>
+          <button class="adm-btn" onclick="adminMaxBase()">🏰 基地MAX</button>
+          <button class="adm-btn" onclick="adminClearBase()">🗑 基地クリア</button>
+          <button class="adm-btn" onclick="adminClearInventory()">🗑 所持品クリア</button>
+        </div>
+      </div>
+
+      <div style="background:#13132a;border:1px solid #ff3366;border-radius:10px;padding:10px;">
+        <div style="font-size:11px;color:#ff3366;font-weight:700;margin-bottom:8px;">⚠️ 危険ゾーン</div>
+        <button class="adm-btn adm-danger" style="width:100%;" onclick="if(confirm('本当にリセット？'))adminResetGame()">🔄 完全リセット</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+function adminAddMoney(v){if(!v||isNaN(v))return;state.money+=v;updateMoneyDisplays();showToast('💰 +'+fmtMoney(v));saveGame();}
+function adminGiveChar(){
+  const id=document.getElementById('adm-char-sel').value;
+  const count=parseInt(document.getElementById('adm-char-count').value)||1;
+  const mutId=document.getElementById('adm-mut-sel').value||null;
+  for(let i=0;i<count;i++) addToInventory(id,1);
+  // 変異付きで付与する場合: 基地の空きスロットに直接配置して変異を設定
+  if(mutId){
+    for(let i=0;i<count;i++){
+      const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));
+      if(freeSlot!==undefined){
+        if((state.inventory[id]||0)>0){
+          removeFromInventory(id);
+          state.base.push({charId:id,slot:freeSlot});
+          setMutation(id,freeSlot,mutId);
+        }
+      }
+    }
+    renderBase();
+  }
+  renderInventory();calcRate();
+  const ch=CHARACTERS.find(c=>c.id===id);
+  showToast('🎁 '+ch.name+(mutId?'['+MUTATIONS[mutId].name+']':'')+'×'+count+'付与');
+  checkAchievements();saveGame();
+}
+function adminGiveAll(rarity){CHARACTERS.filter(c=>c.rarity===rarity).forEach(c=>addToInventory(c.id));renderInventory();calcRate();showToast('🎁 全'+rarity+'付与！');checkAchievements();saveGame();}
+function adminGiveRandom(n){for(let i=0;i<n;i++){const ch=CHARACTERS[Math.floor(Math.random()*CHARACTERS.length)];addToInventory(ch.id);}renderInventory();calcRate();showToast('🎁 ランダム'+n+'体付与！');checkAchievements();saveGame();}
+function adminRefreshShop(){refreshShop();state.shopTimer=180;updateTimerDisplay();showToast('🛒 ショップ更新！');}
+function adminCompleteQuests(){DAILY_QUESTS_DEF.forEach(q=>{if(!state.quests[q.id])state.quests[q.id]={progress:0,claimed:false};state.quests[q.id].progress=q.target;});renderQuests();updateQuestBadge();showToast('📋 全クエスト達成！');}
+function adminUnlockAch(){ACHIEVEMENTS_DEF.forEach(a=>state.achievements.add(a.id));renderAchievements();showToast('🏆 全実績解除！');saveGame();}
+function adminMaxBase(){state.baseSlots=32;renderBase();showToast('🏰 基地MAX！');checkAchievements();saveGame();}
+function adminClearBase(){state.base.forEach(b=>addToInventory(b.charId));state.base=[];if(!state.mutations)state.mutations={};state.mutations={};calcRate();renderBase();renderInventory();showToast('🗑 基地クリア');saveGame();}
+function adminClearInventory(){state.inventory={};renderInventory();calcRate();showToast('🗑 所持品クリア');saveGame();}
+function adminResetGame(){localStorage.removeItem(SAVE_KEY);location.reload();}
+
+// キーボード入力でアドミン（PC）
+document.addEventListener('keydown', e=>{
+  adminKeyBuffer += e.key.toUpperCase();
+  if(adminKeyBuffer.length > ADMIN_PW.length) adminKeyBuffer = adminKeyBuffer.slice(-ADMIN_PW.length);
+  if(adminKeyBuffer === ADMIN_PW){ adminKeyBuffer=''; adminPromptPassword(openAdminPanel); }
+});
+
+initGame();
+
+// スマホ: 基地タイトル5連打
+(function setupAdminTap(){
+  function trySetup(){
+    const title=document.querySelector('.base-section-title');
+    if(title){
+      title.addEventListener('click',()=>{
+        adminTapCount++;
+        clearTimeout(adminTapTimer);
+        adminTapTimer=setTimeout(()=>adminTapCount=0,1500);
+        if(adminTapCount>=5){ adminTapCount=0; adminPromptPassword(openAdminPanel); }
+      });
+    } else { setTimeout(trySetup,300); }
+  }
+  trySetup();
+})();
+</script>
+<style>
+.adm-btn{background:#1a1a35;border:1px solid #2a2a50;color:#e0e0ff;border-radius:7px;padding:7px 8px;font-size:10px;font-weight:700;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;transition:.15s;}
+.adm-btn:hover{border-color:#00ffcc;color:#00ffcc;}
+.adm-btn.adm-danger{border-color:#ff3366;color:#ff3366;}
+.adm-btn.adm-danger:hover{background:#ff3366;color:#fff;}
+.adm-btn.adm-gold{border-color:#ffcc00;color:#ffcc00;}
+.adm-btn.adm-gold:hover{background:#ffcc00;color:#000;}
+</style>
+</body>
+</html>
