@@ -219,15 +219,17 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
   <div class="trade-section">
     <div class="trade-title">🔄 手動トレード</div>
     <div style="font-size:10px;color:var(--muted);margin-bottom:8px">渡すキャラを選ぶ → もらえる候補（レートも表示！）</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div>
-        <div style="font-size:10px;color:var(--muted);font-weight:700">📤 渡すキャラ</div>
-        <div style="margin-top:6px" id="offer-slots-container"></div>
-      </div>
-      <div>
-        <div style="font-size:10px;color:var(--muted);font-weight:700">📥 もらうキャラ候補</div>
-        <div style="font-size:9px;color:var(--muted);margin-bottom:4px" id="recv-hint">渡すキャラを選ぶと候補が出る</div>
-        <div id="recv-candidates-area"></div>
+    <div>
+      <div style="font-size:10px;color:var(--muted);font-weight:700;margin-bottom:6px">📤 渡すキャラ</div>
+      <div id="offer-slots-container"></div>
+    </div>
+    <div style="margin-top:10px">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;margin-bottom:4px">📥 もらうキャラ候補</div>
+      <div style="font-size:9px;color:var(--muted);margin-bottom:4px" id="recv-hint">渡すキャラを選ぶと候補が出る</div>
+      <div id="recv-candidates-area">
+        <div style="background:var(--card);border:2px dashed var(--border);border-radius:10px;padding:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;min-height:80px;">
+          <div style="grid-column:span 4;color:var(--muted);font-size:10px;text-align:center;padding-top:8px">⬆️ 渡すキャラを選択すると候補が表示されます</div>
+        </div>
       </div>
     </div>
     <button class="trade-btn" style="margin-top:10px" onclick="executePlayerTrade()">✅ トレード実行</button>
@@ -412,10 +414,10 @@ const ACHIEVEMENTS_DEF=[
 {id:'first_fusion',name:'錬金術師',desc:'融合を初めて行う',icon:'⚗️',condition:s=>s.stats.totalFusions>=1},
 {id:'rich',name:'億万長者',desc:'$100,000,000稼ぐ',icon:'💎',condition:s=>s.stats.totalEarned>=100000000}
 ];
-let state={money:500000,rate:0,baseSlots:8,base:[],inventory:{},shopChars:[],shopTimer:180,mutations:{},discoveredMutations:new Set(),tradeOfferChar:null,tradeReceiveCandidates:[],tradeReceiveSelected:null,cpuTradeOffer:null,discovered:new Set(),quests:{},achievements:new Set(),stats:{totalBuys:0,totalTrades:0,totalEarned:0,totalFusions:0,sessionDiscovers:0}};
+let state={money:500000,rate:0,baseSlots:8,base:[],inventory:{},shopChars:[],shopTimer:180,mutations:{},inventoryMutations:{},discoveredMutations:new Set(),mutationEventActive:false,tradeOfferChar:null,tradeReceiveCandidates:[],tradeReceiveSelected:null,cpuTradeOffer:null,discovered:new Set(),quests:{},achievements:new Set(),stats:{totalBuys:0,totalTrades:0,totalEarned:0,totalFusions:0,sessionDiscovers:0}};
 const SAVE_KEY='brainrot_v2';
-function saveGame(){try{const d={...state,discovered:[...state.discovered],achievements:[...state.achievements],mutations:state.mutations||{},discoveredMutations:[...(state.discoveredMutations||new Set())]};localStorage.setItem(SAVE_KEY,JSON.stringify(d));const el=document.getElementById('save-indicator');if(el){el.textContent='💾 セーブ済';el.style.color='var(--accent2)';}}catch(e){}}
-function loadGame(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;const d=JSON.parse(raw);state.money=d.money||500000;state.rate=d.rate||0;state.baseSlots=d.baseSlots||8;state.base=d.base||[];state.inventory=d.inventory||{};state.shopChars=d.shopChars||[];state.shopTimer=d.shopTimer||180;state.discovered=new Set(d.discovered||[]);state.quests=d.quests||{};state.achievements=new Set(d.achievements||[]);state.stats=d.stats||{totalBuys:0,totalTrades:0,totalEarned:0,totalFusions:0,sessionDiscovers:0};state.mutations=d.mutations||{};state.discoveredMutations=new Set(d.discoveredMutations||[]);return true;}catch(e){return false;}}
+function saveGame(){try{const d={...state,discovered:[...state.discovered],achievements:[...state.achievements],mutations:state.mutations||{},inventoryMutations:state.inventoryMutations||{},discoveredMutations:[...(state.discoveredMutations||new Set())]};localStorage.setItem(SAVE_KEY,JSON.stringify(d));const el=document.getElementById('save-indicator');if(el){el.textContent='💾 セーブ済';el.style.color='var(--accent2)';}}catch(e){}}
+function loadGame(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;const d=JSON.parse(raw);state.money=d.money||500000;state.rate=d.rate||0;state.baseSlots=d.baseSlots||8;state.base=d.base||[];state.inventory=d.inventory||{};state.shopChars=d.shopChars||[];state.shopTimer=d.shopTimer||180;state.discovered=new Set(d.discovered||[]);state.quests=d.quests||{};state.achievements=new Set(d.achievements||[]);state.stats=d.stats||{totalBuys:0,totalTrades:0,totalEarned:0,totalFusions:0,sessionDiscovers:0};state.mutations=d.mutations||{};state.inventoryMutations=d.inventoryMutations||{};state.discoveredMutations=new Set(d.discoveredMutations||[]);return true;}catch(e){return false;}}
 function addToInventory(id,count=1){const wasNew=!state.discovered.has(id);state.inventory[id]=(state.inventory[id]||0)+count;state.discovered.add(id);if(wasNew)state.stats.sessionDiscovers=(state.stats.sessionDiscovers||0)+1;}
 function removeFromInventory(id,count=1){if(!state.inventory[id])return false;state.inventory[id]-=count;if(state.inventory[id]<=0)delete state.inventory[id];return true;}
 function fmtMoney(v){return v>=1e9?`$${(v/1e9).toFixed(1)}B`:v>=1e6?`$${(v/1e6).toFixed(1)}M`:v>=1e3?`$${(v/1e3).toFixed(1)}K`:`$${Math.floor(v)}`;}
@@ -423,13 +425,39 @@ function fmtRate(v){return v>=1e6?`$${(v/1e6).toFixed(1)}M/s`:v>=1e3?`$${(v/1e3)
 function fmtRateSm(v){return v>=1e6?`$${(v/1e6).toFixed(1)}M/s`:v>=1e3?`$${(v/1e3).toFixed(1)}K/s`:`$${v}/s`;}
 function updateMoneyDisplays(){['money-display','money-display2','money-display3','money-display4','money-display5','money-display6'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=fmtMoney(state.money);});['rate-display','rate-display2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=fmtRate(state.rate);});}
 function calcRate(){state.rate=state.base.reduce((s,b)=>{const c=CHARACTERS.find(x=>x.id===b.charId);if(!c)return s;const muts=getMutations(b.charId,b.slot);const mult=muts.reduce((m,mut)=>m*(mut?mut.mult:1.0),1.0);return s+c.rate*mult;},0);updateMoneyDisplays();}
-function initGame(){const loaded=loadGame();if(!loaded){addToInventory('tralalero',2);addToInventory('bombardino',1);addToInventory('chimpanzini',1);addToInventory('frigo',1);initQuests();}if(!state.shopChars||state.shopChars.length===0)refreshShop();calcRate();renderAll();setInterval(()=>{const e=state.rate;state.money+=e;state.stats.totalEarned=(state.stats.totalEarned||0)+e;updateMoneyDisplays();checkQuestProgress();},1000);setInterval(()=>{state.shopTimer--;if(state.shopTimer<=0){refreshShop();state.shopTimer=180;}updateTimerDisplay();},1000);setInterval(()=>saveGame(),30000);checkAchievements();}
+function initGame(){const loaded=loadGame();if(!loaded){addToInventory('tralalero',2);addToInventory('bombardino',1);addToInventory('chimpanzini',1);addToInventory('frigo',1);initQuests();}if(!state.shopChars||state.shopChars.length===0)refreshShop();calcRate();renderAll();setInterval(()=>{const e=state.rate;state.money+=e;state.stats.totalEarned=(state.stats.totalEarned||0)+e;updateMoneyDisplays();checkQuestProgress();},1000);setInterval(()=>{state.shopTimer--;if(state.shopTimer<=0){refreshShop();state.shopTimer=180;}updateTimerDisplay();},1000);setInterval(()=>saveGame(),30000);
+// 変異イベント: 毎日19:00〜19:10
+setInterval(()=>checkMutationEvent(),30000);
+checkMutationEvent();
+checkAchievements();}
 function renderBase(){const grid=document.getElementById('base-grid');grid.innerHTML='';document.getElementById('base-slot-count').textContent=`${state.base.length}/${state.baseSlots}`;for(let i=0;i<state.baseSlots;i++){const slot=document.createElement('div');slot.className='base-slot';const placed=state.base.find(b=>b.slot===i);if(placed){const ch=CHARACTERS.find(x=>x.id===placed.charId);if(!ch)continue;slot.classList.add('filled','border-'+ch.rarity);const muts=getMutations(ch.id,i);const mult=muts.reduce((m,mut)=>m*(mut?mut.mult:1.0),1.0);const displayRate=ch.rate*mult;const mutHtml=muts.length?muts.map(mut=>`<div style="font-size:7px;font-weight:700;color:${mut.color};text-shadow:0 0 6px ${mut.color};">${mut.name}</div>`).join(''):'';slot.innerHTML=`${svgChar(ch.id)}<div class="slot-name">${ch.name}</div><div class="slot-rate">${displayRate>=1000?fmtMoney(displayRate).replace('$','')+'/s':displayRate.toFixed(1)+'/s'}</div><div class="rarity-dot dot-${ch.rarity}"></div>${muts.length?`<div style="position:absolute;bottom:14px;left:0;right:0;text-align:center;">${mutHtml}</div>`:''}`;slot.onclick=()=>baseSlotClick(i,ch);}else{slot.innerHTML='<div style="font-size:24px;color:var(--muted)">＋</div><div style="font-size:9px;color:var(--muted)">配置</div>';slot.onclick=()=>openPlaceModal(i);}grid.appendChild(slot);}const cost=Math.floor(1e6*Math.pow(2,state.baseSlots-8));document.getElementById('expand-btn').textContent=`＋スロット追加 (${fmtMoney(cost)})`;}
 function expandBase(){const cost=Math.floor(1e6*Math.pow(2,state.baseSlots-8));if(state.money<cost){showToast('💰 お金が足りない！');return;}state.money-=cost;state.baseSlots+=4;renderBase();showToast('✅ スロットが4つ増えた！');checkAchievements();saveGame();}
 function baseSlotClick(slot,ch){openModal(`<div class="modal-header"><h3>🏰 ${ch.name}</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body">${svgChar(ch.id)}<div class="mb-name">${ch.name}</div><div class="mb-rarity r-${ch.rarity}">${RARITIES[ch.rarity].label}</div><div class="mb-rate">${fmtRateSm(ch.rate)}</div><div class="mb-desc">${ch.desc}</div><div class="modal-actions"><button class="mact-btn mact-danger" onclick="removeFromBase(${slot})">🗑 撤退させる</button><button class="mact-btn mact-secondary" onclick="closeModal()">閉じる</button></div></div>`);}
-function removeFromBase(slot){const idx=state.base.findIndex(b=>b.slot===slot);if(idx!==-1){const ch=CHARACTERS.find(x=>x.id===state.base[idx].charId);addToInventory(ch.id);clearMutationsForSlot(slot);state.base.splice(idx,1);calcRate();renderBase();renderInventory();closeModal();showToast(`↩ ${ch.name}を回収した`);saveGame();}}
+function removeFromBase(slot){const idx=state.base.findIndex(b=>b.slot===slot);if(idx!==-1){const b=state.base[idx];const ch=CHARACTERS.find(x=>x.id===b.charId);
+// 変異情報を保持してインベントリへ戻す
+// mutations キーを charId_slot → charId_inv_UUID で退避
+const muts=getMutations(b.charId,slot);
+if(muts.length){
+  if(!state.inventoryMutations)state.inventoryMutations={};
+  // インベントリ内変異はキャラIDで管理（同キャラ複数は上書き。基地に戻した時に再付与）
+  state.inventoryMutations[b.charId]=(state.inventoryMutations[b.charId]||[]).concat(muts.map(m=>m.id));
+}
+addToInventory(ch.id);
+// スロットのキーを削除するが他のスロットの同キャラの変異は残す
+if(!state.mutations)state.mutations={};
+delete state.mutations[b.charId+'_'+slot];
+state.base.splice(idx,1);calcRate();renderBase();renderInventory();closeModal();showToast(`↩ ${ch.name}を回収した`);saveGame();}}
 function openPlaceModal(slot){const available=Object.keys(state.inventory).filter(id=>( state.inventory[id]||0)>0);if(!available.length){showToast('📦 配置できるキャラがいない');return;}let html=`<div class="modal-header"><h3>キャラを配置</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body" style="width:100%"><div class="pick-grid">`;available.forEach(id=>{const ch=CHARACTERS.find(x=>x.id===id);if(!ch)return;html+=`<div class="pick-card" onclick="placeChar('${id}',${slot})">${svgChar(id)}<div class="pcn">${ch.name}</div><div class="pcr r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div></div>`;});html+=`</div></div>`;openModal(html);}
-function placeChar(charId,slot){if(state.base.find(b=>b.slot===slot))return;if((state.inventory[charId]||0)<=0){showToast('所持数が足りない！');return;}removeFromInventory(charId);state.base.push({charId,slot});calcRate();renderBase();renderInventory();closeModal();const ch=CHARACTERS.find(x=>x.id===charId);showToast(`✅ ${ch.name}を配置した！`);checkQuestProgress();saveGame();}
+function placeChar(charId,slot){if(state.base.find(b=>b.slot===slot))return;if((state.inventory[charId]||0)<=0){showToast('所持数が足りない！');return;}removeFromInventory(charId);state.base.push({charId,slot});
+// インベントリに退避していた変異を復元
+if(state.inventoryMutations&&state.inventoryMutations[charId]&&state.inventoryMutations[charId].length){
+  if(!state.mutations)state.mutations={};
+  state.mutations[charId+'_'+slot]=state.inventoryMutations[charId];
+  delete state.inventoryMutations[charId];
+  if(!state.discoveredMutations)state.discoveredMutations=new Set();
+  state.mutations[charId+'_'+slot].forEach(m=>state.discoveredMutations.add(m));
+}
+calcRate();renderBase();renderInventory();closeModal();const ch=CHARACTERS.find(x=>x.id===charId);showToast(`✅ ${ch.name}を配置した！`);checkQuestProgress();saveGame();}
 function refreshShop(){const shopable=CHARACTERS.filter(c=>c.rarity!=='mythic');const weights={common:45,uncommon:30,rare:15,epic:7,legendary:3};const pool=shopable.flatMap(c=>Array(weights[c.rarity]||5).fill(c));const chosen=[];const used=new Set();let tries=0;while(chosen.length<5&&tries<200){tries++;const pick=pool[Math.floor(Math.random()*pool.length)];if(!used.has(pick.id)){chosen.push({...pick,price:pick.rate*200,sold:false});used.add(pick.id);}}state.shopChars=chosen;renderShop();}
 function renderShop(){const grid=document.getElementById('shop-grid');grid.innerHTML='';state.shopChars.forEach((ch,i)=>{const affordable=state.money>=ch.price;const card=document.createElement('div');card.className=`shop-card border-${ch.rarity}`;card.innerHTML=`${ch.sold?'<div class="sold-badge">SOLD</div>':''}${svgChar(ch.id)}<div class="char-name">${ch.name}</div><div class="char-rarity r-${ch.rarity}">${RARITIES[ch.rarity].label}</div><div class="char-rate">${fmtRateSm(ch.rate)}</div><button class="buy-btn" ${ch.sold||!affordable?'disabled':''} onclick="buyChar(${i})">${ch.sold?'売り切れ':fmtMoney(ch.price)}</button>`;grid.appendChild(card);});}
 function buyChar(i){const ch=state.shopChars[i];if(ch.sold||state.money<ch.price){showToast('💰 お金が足りない！');return;}state.money-=ch.price;addToInventory(ch.id);state.shopChars[i].sold=true;state.stats.totalBuys=(state.stats.totalBuys||0)+1;renderShop();updateMoneyDisplays();renderInventory();const mutRoll=rollMutation(0.01);if(mutRoll){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[ch.id]||0)>0){removeFromInventory(ch.id);state.base.push({charId:ch.id,slot:freeSlot});addMutation(ch.id,freeSlot,mutRoll);if(!state.discoveredMutations)state.discoveredMutations=new Set();state.discoveredMutations.add(mutRoll);calcRate();renderBase();renderInventory();showToast('✨ '+ch.name+' に '+MUTATIONS[mutRoll].name+' が発現！');}else{showToast('🎉 '+ch.name+' をゲット！');}}else{showToast('🎉 '+ch.name+' をゲット！');}checkQuestProgress();checkAchievements();saveGame();}
@@ -481,7 +509,19 @@ function renderTrade(){
 }
 function selectOfferChar(charId){if(state.tradeOfferChar===charId){state.tradeOfferChar=null;state.tradeReceiveCandidates=[];state.tradeReceiveSelected=null;}else{state.tradeOfferChar=charId;generateReceiveCandidates(charId);}renderTrade();}
 function generateReceiveCandidates(offerCharId){const ch=CHARACTERS.find(x=>x.id===offerCharId);if(!ch){state.tradeReceiveCandidates=[];return;}const rarityOrder=['common','uncommon','rare','epic','legendary','mythic'];const myRarityIdx=rarityOrder.indexOf(ch.rarity);const pool=CHARACTERS.filter(c=>c.rarity!=='mythic'&&c.id!==offerCharId&&Math.abs(rarityOrder.indexOf(c.rarity)-myRarityIdx)<=1);const shuffled=[...pool].sort(()=>Math.random()-.5).slice(0,6);state.tradeReceiveCandidates=shuffled;state.tradeReceiveSelected=null;}
-function renderReceiveCandidates(){const area=document.getElementById('recv-candidates-area');const hint=document.getElementById('recv-hint');area.innerHTML='';if(!state.tradeOfferChar||!state.tradeReceiveCandidates.length){hint.style.display='';hint.textContent='渡すキャラを選ぶと候補が出る';return;}hint.style.display='none';const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:6px;';state.tradeReceiveCandidates.forEach(ch=>{const card=document.createElement('div');const selected=state.tradeReceiveSelected===ch.id;card.className='recv-cand'+(selected?' selected':'');card.innerHTML=`${svgChar(ch.id)}<div class="rcn">${ch.name}</div><div class="rcr r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div><div class="rcrate">${fmtRateSm(ch.rate)}</div>`;card.onclick=()=>{state.tradeReceiveSelected=ch.id;renderReceiveCandidates();};grid.appendChild(card);});area.appendChild(grid);}
+function renderReceiveCandidates(){const area=document.getElementById('recv-candidates-area');const hint=document.getElementById('recv-hint');area.innerHTML='';if(!state.tradeOfferChar||!state.tradeReceiveCandidates.length){
+  // キャラ未選択 → プレースホルダー枠を表示
+  hint.style.display='';
+  hint.textContent='渡すキャラを選ぶと候補が出る';
+  const ph=document.createElement('div');
+  ph.style.cssText='background:var(--card);border:2px dashed var(--border);border-radius:10px;padding:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;min-height:80px;';
+  ph.innerHTML='<div style="grid-column:span 4;color:var(--muted);font-size:10px;text-align:center;padding-top:8px">⬆️ 渡すキャラを選択すると候補が表示されます</div>';
+  area.appendChild(ph);
+  return;}
+hint.style.display='none';const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:6px;';state.tradeReceiveCandidates.forEach(ch=>{const card=document.createElement('div');const selected=state.tradeReceiveSelected===ch.id;
+// CPUトレードではなく手動トレードの候補なので変異なし（インベントリから来る）
+// ただしこのキャラがインベントリにあれば変異情報は表示できないため通常表示
+card.className='recv-cand'+(selected?' selected':'');card.innerHTML=`${svgChar(ch.id)}<div class="rcn">${ch.name}</div><div class="rcr r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div><div class="rcrate">${fmtRateSm(ch.rate)}</div>`;card.onclick=()=>{state.tradeReceiveSelected=ch.id;renderReceiveCandidates();};grid.appendChild(card);});area.appendChild(grid);}
 function executePlayerTrade(){if(!state.tradeOfferChar){showToast('渡すキャラを選んでください');return;}if(!state.tradeReceiveSelected){showToast('もらうキャラを選んでください');return;}if(!state.inventory[state.tradeOfferChar]||state.inventory[state.tradeOfferChar]<=0){showToast('そのキャラを持っていない！');return;}const giveChar=CHARACTERS.find(x=>x.id===state.tradeOfferChar);const getChar=CHARACTERS.find(x=>x.id===state.tradeReceiveSelected);removeFromInventory(state.tradeOfferChar);addToInventory(state.tradeReceiveSelected);state.tradeOfferChar=null;state.tradeReceiveCandidates=[];state.tradeReceiveSelected=null;state.stats.totalTrades=(state.stats.totalTrades||0)+1;renderTrade();renderInventory();calcRate();showToast(`🔄 ${giveChar.name} → ${getChar.name} トレード成功！`);checkQuestProgress();checkAchievements();saveGame();}
 function generateCPUTrade(){const myChars=Object.keys(state.inventory).filter(id=>state.inventory[id]>0);if(!myChars.length){showToast('キャラがいない');return;}const wantId=myChars[Math.floor(Math.random()*myChars.length)];const wantChar=CHARACTERS.find(x=>x.id===wantId);const rarityOrder=['common','uncommon','rare','epic','legendary'];const myRarityIdx=rarityOrder.indexOf(wantChar.rarity);const offerPool=CHARACTERS.filter(c=>c.rarity!=='mythic'&&c.id!==wantId&&Math.abs(rarityOrder.indexOf(c.rarity)-myRarityIdx)<=1);const offerChar=offerPool[Math.floor(Math.random()*offerPool.length)];
 // 25%の確率でCPUが変異付きキャラを提示する（同じ変異は付かない、何個でもOK）
@@ -500,15 +540,19 @@ function acceptCPUTrade(){const{wantId,wantChar,offerChar,offerMutations=[]}=sta
 if(offerMutations.length){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined){removeFromInventory(offerChar.id);state.base.push({charId:offerChar.id,slot:freeSlot});offerMutations.forEach(m=>{addMutation(offerChar.id,freeSlot,m);});if(!state.discoveredMutations)state.discoveredMutations=new Set();offerMutations.forEach(m=>state.discoveredMutations.add(m));renderBase();}}
 state.cpuTradeOffer=null;state.stats.totalTrades=(state.stats.totalTrades||0)+1;renderCPUTrade();renderInventory();calcRate();const mutMsg=offerMutations.length?' 🧬変異付き！':'';showToast(`🎉 ${wantChar.name}→${offerChar.name}${mutMsg} CPUトレード成功！`);checkQuestProgress();checkAchievements();saveGame();}
 function rejectCPUTrade(){state.cpuTradeOffer=null;renderCPUTrade();showToast('❌ オファーを断った');}
-function renderFusion(){const recipesDiv=document.getElementById('fusion-recipes');recipesDiv.innerHTML='';FUSION_RECIPES.forEach(recipe=>{const resultChar=CHARACTERS.find(c=>c.id===recipe.result);let canFuse=true;let missingParts=[];recipe.ingredients.forEach(ing=>{const have=state.inventory[ing.id]||0;if(have<ing.count){canFuse=false;missingParts.push(ing);}});const div=document.createElement('div');div.className='fusion-recipe';let ingsHtml=recipe.ingredients.map(ing=>{const ch=CHARACTERS.find(c=>c.id===ing.id);const have=state.inventory[ing.id]||0;const ok=have>=ing.count;return `<div class="fusion-ing" style="${ok?'border-color:var(--accent2)':''}">${svgChar(ing.id)}<div class="fin" style="${ok?'color:var(--accent2)':''}">${ch?ch.name:'?'}</div><div class="fic">${have}/${ing.count}</div></div>`;}).join('<div style="font-size:14px;color:var(--muted);align-self:center">＋</div>');div.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-size:11px;font-weight:700">✨ ${recipe.name}</div></div><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:8px">${ingsHtml}</div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div class="fusion-result"><div style="animation:float 3s ease-in-out infinite">${svgChar(resultChar.id)}</div><div class="fusion-result-info"><div class="frn r-${resultChar.rarity}">${resultChar.name}</div><div class="frr r-${resultChar.rarity}">${RARITIES[resultChar.rarity].label}</div><div class="frrate">${fmtRateSm(resultChar.rate)}</div></div></div><button class="fusion-btn" ${canFuse?'':'disabled'} onclick="executeFusion('${recipe.id}')">${canFuse?'⚗️ 融合！':'素材不足'}</button></div>${!canFuse?`<div class="fusion-missing">不足: ${missingParts.map(p=>{const c=CHARACTERS.find(x=>x.id===p.id);return c?c.name:'?';}).join(', ')}</div>`:''}`;recipesDiv.appendChild(div);});const upgradeDiv=document.getElementById('upgrade-fusion');upgradeDiv.innerHTML='';const upgradeable=[];Object.entries(state.inventory).forEach(([id,count])=>{if(count>=3){const ch=CHARACTERS.find(c=>c.id===id);if(ch&&ch.rarity!=='legendary'&&ch.rarity!=='mythic')upgradeable.push({ch,count});}});if(!upgradeable.length){upgradeDiv.innerHTML='<div style="color:var(--muted);font-size:11px;text-align:center;padding:10px">同じキャラを3体以上持つと融合可能！</div>';return;}const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(2,1fr);gap:8px;';upgradeable.forEach(({ch,count})=>{const nextRarity=RARITY_ORDER[RARITY_ORDER.indexOf(ch.rarity)+1];const nextRarityLabel=RARITIES[nextRarity]?.label||'???';const card=document.createElement('div');card.className='fusion-recipe';card.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><div style="position:relative;flex-shrink:0">${svgChar(ch.id)}<div style="position:absolute;bottom:0;right:0;background:var(--accent);color:#fff;font-size:8px;border-radius:6px;padding:0 3px">×3</div></div><div><div style="font-size:10px;font-weight:700">${ch.name}</div><div style="font-size:8px;color:var(--muted)">所持: ${count}体</div><div style="font-size:8px;margin-top:2px">→ <span class="r-${nextRarity}">${nextRarityLabel}</span>ランダム</div></div></div><button class="fusion-btn" style="margin-top:8px;width:100%" onclick="executeUpgradeFusion('${ch.id}')">⬆️ アップグレード融合</button>`;grid.appendChild(card);});upgradeDiv.appendChild(grid);}
+function renderFusion(){const recipesDiv=document.getElementById('fusion-recipes');recipesDiv.innerHTML='';FUSION_RECIPES.forEach(recipe=>{const resultChar=CHARACTERS.find(c=>c.id===recipe.result);let canFuse=true;let missingParts=[];recipe.ingredients.forEach(ing=>{const have=state.inventory[ing.id]||0;if(have<ing.count){canFuse=false;missingParts.push(ing);}});const div=document.createElement('div');div.className='fusion-recipe';
+let ingsHtml=recipe.ingredients.map(ing=>{const ch=CHARACTERS.find(c=>c.id===ing.id);const have=state.inventory[ing.id]||0;const ok=have>=ing.count;const ingMuts=getIngredientMutations(ing.id);const ingMutHtml=ingMuts.length?ingMuts.map(m=>MUTATIONS[m]?`<div style="font-size:5px;font-weight:700;color:${MUTATIONS[m].color};line-height:1.2">${MUTATIONS[m].name}</div>`:'').join(''):'';const ingMult=ingMuts.reduce((a,m)=>a*(MUTATIONS[m]?MUTATIONS[m].mult:1),1);const ingEffRate=ch?ch.rate*ingMult:0;return `<div class="fusion-ing" style="${ok?'border-color:var(--accent2)':''}">${svgChar(ing.id)}<div class="fin" style="${ok?'color:var(--accent2)':''}">${ch?ch.name:'?'}</div><div class="fic">${have}/${ing.count}</div>${ingMuts.length?`<div style="text-align:center;margin-top:1px">${ingMutHtml}<div style="font-size:5px;color:var(--accent3)">${fmtRateSm(ingEffRate)}</div></div>`:''}</div>`;}).join('<div style="font-size:14px;color:var(--muted);align-self:center">＋</div>');
+div.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-size:11px;font-weight:700">✨ ${recipe.name}</div></div><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:8px">${ingsHtml}</div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div class="fusion-result"><div style="animation:float 3s ease-in-out infinite">${svgChar(resultChar.id)}</div><div class="fusion-result-info"><div class="frn r-${resultChar.rarity}">${resultChar.name}</div><div class="frr r-${resultChar.rarity}">${RARITIES[resultChar.rarity].label}</div><div class="frrate">${fmtRateSm(resultChar.rate)}</div></div></div><button class="fusion-btn" ${canFuse?'':'disabled'} onclick="executeFusion('${recipe.id}')">${canFuse?'⚗️ 融合！':'素材不足'}</button></div>${!canFuse?`<div class="fusion-missing">不足: ${missingParts.map(p=>{const c=CHARACTERS.find(x=>x.id===p.id);return c?c.name:'?';}).join(', ')}</div>`:''}`;recipesDiv.appendChild(div);});const upgradeDiv=document.getElementById('upgrade-fusion');upgradeDiv.innerHTML='';const upgradeable=[];Object.entries(state.inventory).forEach(([id,count])=>{if(count>=3){const ch=CHARACTERS.find(c=>c.id===id);if(ch&&ch.rarity!=='legendary'&&ch.rarity!=='mythic')upgradeable.push({ch,count});}});if(!upgradeable.length){upgradeDiv.innerHTML='<div style="color:var(--muted);font-size:11px;text-align:center;padding:10px">同じキャラを3体以上持つと融合可能！</div>';return;}const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(2,1fr);gap:8px;';upgradeable.forEach(({ch,count})=>{const nextRarity=RARITY_ORDER[RARITY_ORDER.indexOf(ch.rarity)+1];const nextRarityLabel=RARITIES[nextRarity]?.label||'???';const ingMuts=getIngredientMutations(ch.id);const ingMutHtml=ingMuts.length?ingMuts.map(m=>MUTATIONS[m]?`<div style="font-size:7px;font-weight:700;color:${MUTATIONS[m].color}">${MUTATIONS[m].name}</div>`:'').join(''):'';const ingMult=ingMuts.reduce((a,m)=>a*(MUTATIONS[m]?MUTATIONS[m].mult:1),1);const effRate=ch.rate*ingMult;const card=document.createElement('div');card.className='fusion-recipe';card.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><div style="position:relative;flex-shrink:0">${svgChar(ch.id)}<div style="position:absolute;bottom:0;right:0;background:var(--accent);color:#fff;font-size:8px;border-radius:6px;padding:0 3px">×3</div></div><div><div style="font-size:10px;font-weight:700">${ch.name}</div><div style="font-size:8px;color:var(--muted)">所持: ${count}体</div>${ingMuts.length?`<div style="margin-top:2px">${ingMutHtml}<div style="font-size:8px;color:var(--accent3)">${fmtRateSm(effRate)}/s</div></div>`:`<div style="font-size:8px;color:var(--muted)">${fmtRateSm(ch.rate)}/s</div>`}<div style="font-size:8px;margin-top:2px">→ <span class="r-${nextRarity}">${nextRarityLabel}</span>ランダム</div></div></div><button class="fusion-btn" style="margin-top:8px;width:100%" onclick="executeUpgradeFusion('${ch.id}')">⬆️ アップグレード融合</button>`;grid.appendChild(card);});upgradeDiv.appendChild(grid);}
 function executeFusion(recipeId){const recipe=FUSION_RECIPES.find(r=>r.id===recipeId);if(!recipe)return;let canFuse=true;recipe.ingredients.forEach(ing=>{if((state.inventory[ing.id]||0)<ing.count)canFuse=false;});if(!canFuse){showToast('素材が足りない！');return;}
-// 素材の変異を収集
 const ingredientMuts=[];recipe.ingredients.forEach(ing=>{const baseMuts=getIngredientMutations(ing.id);baseMuts.forEach(m=>{if(!ingredientMuts.includes(m))ingredientMuts.push(m);});});
 recipe.ingredients.forEach(ing=>{for(let i=0;i<ing.count;i++)removeFromInventory(ing.id);});state.inventory[recipe.result]=(state.inventory[recipe.result]||0)+1;state.discovered.add(recipe.result);state.stats.totalFusions=(state.stats.totalFusions||0)+1;const resultChar=CHARACTERS.find(c=>c.id===recipe.result);
-// 付与する変異を決定: 素材変異70%継承 + ベース30%でランダム変異
-const finalMuts=[];ingredientMuts.forEach(m=>{if(Math.random()<0.70)finalMuts.push(m);});const baseMut=rollMutation(0.30);if(baseMut&&!finalMuts.includes(baseMut))finalMuts.push(baseMut);
-let mutLabel='';if(finalMuts.length){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[recipe.result]||0)>0){removeFromInventory(recipe.result);state.base.push({charId:recipe.result,slot:freeSlot});finalMuts.forEach(m=>addMutation(recipe.result,freeSlot,m));state.discoveredMutations=state.discoveredMutations||new Set();finalMuts.forEach(m=>state.discoveredMutations.add(m));mutLabel=finalMuts.map(m=>`<div class="mb-rarity" style="color:${MUTATIONS[m].color}">${MUTATIONS[m].name} が発現！</div>`).join('');renderBase();}}renderFusion();renderInventory();calcRate();openModal(`<div class="modal-header"><h3>🌟 ミシック召喚成功！</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><div style="animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 20px #ff3366)">${svgChar(resultChar.id)}</div><div class="mb-name r-mythic" style="font-size:20px">${resultChar.name}</div><div class="mb-rarity r-mythic">✨ MYTHIC ✨</div>${mutLabel}<div class="mb-rate">${fmtRateSm(resultChar.rate)}</div><div class="mb-desc">${resultChar.desc}</div><button class="mact-btn mact-primary" style="width:100%;margin-top:8px" onclick="closeModal()">🎉 すごい！</button></div>`);checkAchievements();saveGame();}
-function executeUpgradeFusion(charId){const ch=CHARACTERS.find(c=>c.id===charId);if(!ch||(state.inventory[charId]||0)<3){showToast('3体必要！');return;}const nextRarity=RARITY_ORDER[RARITY_ORDER.indexOf(ch.rarity)+1];const nextPool=CHARACTERS.filter(c=>c.rarity===nextRarity);if(!nextPool.length){showToast('次のレアリティがない！');return;}const result=nextPool[Math.floor(Math.random()*nextPool.length)];for(let i=0;i<3;i++)removeFromInventory(charId);addToInventory(result.id);state.stats.totalFusions=(state.stats.totalFusions||0)+1;renderFusion();renderInventory();calcRate();showToast(`⬆️ ${ch.name}×3 → ${result.name}！`);checkAchievements();saveGame();}
+const finalMuts=[];ingredientMuts.forEach(m=>{if(Math.random()<0.40)finalMuts.push(m);});const baseMut=rollMutation(0.25);if(baseMut&&!finalMuts.includes(baseMut))finalMuts.push(baseMut);
+let mutLabel='';if(finalMuts.length){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[recipe.result]||0)>0){removeFromInventory(recipe.result);state.base.push({charId:recipe.result,slot:freeSlot});finalMuts.forEach(m=>addMutation(recipe.result,freeSlot,m));state.discoveredMutations=state.discoveredMutations||new Set();finalMuts.forEach(m=>state.discoveredMutations.add(m));const mult=finalMuts.reduce((a,m)=>a*(MUTATIONS[m]?MUTATIONS[m].mult:1),1);const effRate=resultChar.rate*mult;mutLabel=`<div style="background:#1a1a00;border:1px solid #aa44ff;border-radius:8px;padding:8px;width:100%;text-align:center;">${finalMuts.map(m=>`<div style="font-size:11px;font-weight:900;color:${MUTATIONS[m].color}">${MUTATIONS[m].name} が発現！</div>`).join('')}<div style="font-size:13px;color:var(--accent3);font-weight:700;margin-top:4px">変異込み稼ぎ: ${fmtRateSm(effRate)}</div><div style="font-size:9px;color:var(--muted)">(基本 ${fmtRateSm(resultChar.rate)} × ${mult.toFixed(1)}倍)</div></div>`;renderBase();}}renderFusion();renderInventory();calcRate();openModal(`<div class="modal-header"><h3>🌟 ミシック召喚成功！</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><div style="animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 20px #ff3366)">${svgChar(resultChar.id)}</div><div class="mb-name r-mythic" style="font-size:20px">${resultChar.name}</div><div class="mb-rarity r-mythic">✨ MYTHIC ✨</div>${mutLabel}<div class="mb-rate">${fmtRateSm(resultChar.rate)}</div><div class="mb-desc">${resultChar.desc}</div><button class="mact-btn mact-primary" style="width:100%;margin-top:8px" onclick="closeModal()">🎉 すごい！</button></div>`);checkAchievements();saveGame();}
+function executeUpgradeFusion(charId){const ch=CHARACTERS.find(c=>c.id===charId);if(!ch||(state.inventory[charId]||0)<3){showToast('3体必要！');return;}const nextRarity=RARITY_ORDER[RARITY_ORDER.indexOf(ch.rarity)+1];const nextPool=CHARACTERS.filter(c=>c.rarity===nextRarity);if(!nextPool.length){showToast('次のレアリティがない！');return;}const result=nextPool[Math.floor(Math.random()*nextPool.length)];for(let i=0;i<3;i++)removeFromInventory(charId);addToInventory(result.id);state.stats.totalFusions=(state.stats.totalFusions||0)+1;
+// 変異チャンス（アップグレード融合）
+const upgMut=rollMutation(0.20);
+if(upgMut){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[result.id]||0)>0){removeFromInventory(result.id);state.base.push({charId:result.id,slot:freeSlot});addMutation(result.id,freeSlot,upgMut);state.discoveredMutations=state.discoveredMutations||new Set();state.discoveredMutations.add(upgMut);renderBase();showToast(`⬆️ ${ch.name}×3 → ${result.name}！ 🧬${MUTATIONS[upgMut].name}発現！`);renderFusion();renderInventory();calcRate();checkAchievements();saveGame();return;}}
+renderFusion();renderInventory();calcRate();showToast(`⬆️ ${ch.name}×3 → ${result.name}！`);checkAchievements();saveGame();}
 function initQuests(){state.quests={};DAILY_QUESTS_DEF.forEach(q=>{state.quests[q.id]={progress:0,claimed:false};});}
 function checkQuestProgress(){if(!state.quests||Object.keys(state.quests).length===0)initQuests();let changed=false;DAILY_QUESTS_DEF.forEach(q=>{if(state.quests[q.id]?.claimed)return;let prog=state.quests[q.id]?.progress||0;let newProg=prog;if(q.type==='buy')newProg=Math.min(q.target,state.stats.totalBuys||0);if(q.type==='trade')newProg=Math.min(q.target,state.stats.totalTrades||0);if(q.type==='earn')newProg=Math.min(q.target,state.stats.totalEarned||0);if(q.type==='discover')newProg=Math.min(q.target,state.stats.sessionDiscovers||0);if(q.type==='base')newProg=Math.min(q.target,state.base.length||0);if(q.type==='fusion')newProg=Math.min(q.target,state.stats.totalFusions||0);if(newProg!==prog){state.quests[q.id].progress=newProg;changed=true;}});if(changed)renderQuests();updateQuestBadge();}
 function updateQuestBadge(){const claimable=DAILY_QUESTS_DEF.filter(q=>{const qs=state.quests[q.id];return qs&&!qs.claimed&&qs.progress>=q.target;}).length;const btn=document.getElementById('nav-quest');let badge=btn.querySelector('.quest-badge');if(claimable>0){if(!badge){badge=document.createElement('div');badge.className='quest-badge';btn.appendChild(badge);}badge.textContent=claimable;}else if(badge)badge.remove();}
@@ -573,7 +617,9 @@ function clearMutationsForSlot(slot) {
   Object.keys(state.mutations).forEach(k=>{ if(k.endsWith('_'+slot)) delete state.mutations[k]; });
 }
 function rollMutation(chance) {
-  if(Math.random() < chance) return MUTATION_POOL[Math.floor(Math.random()*MUTATION_POOL.length)];
+  // イベント中は確率2倍
+  const mult = state.mutationEventActive ? 2.0 : 1.0;
+  if(Math.random() < chance * mult) return MUTATION_POOL[Math.floor(Math.random()*MUTATION_POOL.length)];
   return null;
 }
 // 素材キャラが持つ変異リストを取得（インベントリ内なのでスロット不明→mutations全体から検索）
@@ -655,7 +701,7 @@ function openAdminPanel(){
   overlay.id='admin-overlay';
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;display:flex;align-items:center;justify-content:center;padding:12px;';
 
-  const mutOptions = MUTATION_POOL.map(mid=>`<option value="${mid}">${MUTATIONS[mid].name} (${MUTATIONS[mid].desc})</option>`).join('');
+  const mutCheckboxes = MUTATION_POOL.map(mid=>`<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:9px;color:${MUTATIONS[mid].color};font-weight:700;"><input type="checkbox" value="${mid}" style="accent-color:${MUTATIONS[mid].color};width:12px;height:12px;">${MUTATIONS[mid].name}</label>`).join('');
   const charOptions = CHARACTERS.map(c=>`<option value="${c.id}">[${c.rarity.substring(0,3).toUpperCase()}] ${c.name}</option>`).join('');
 
   overlay.innerHTML = `
@@ -687,20 +733,17 @@ function openAdminPanel(){
             ${charOptions}
           </select>
         </div>
-        <div style="display:flex;gap:6px;margin-bottom:8px;">
-          <div style="flex:1;">
-            <div style="font-size:9px;color:#6060aa;margin-bottom:3px;">変異（オプション）</div>
-            <select id="adm-mut-sel"
-              style="width:100%;background:#1a1a35;border:1px solid #2a2a50;color:#e0e0ff;border-radius:6px;padding:6px 8px;font-size:11px;outline:none;">
-              <option value="">変異なし</option>
-              ${mutOptions}
-            </select>
+        <div style="margin-bottom:8px;">
+          <div style="font-size:9px;color:#6060aa;margin-bottom:4px;">🧬 変異（複数選択可・同じ変異は付かない）</div>
+          <div id="adm-mut-checks" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#0d0d1a;border:1px solid #2a2a50;border-radius:6px;padding:6px;max-height:140px;overflow-y:auto;">
+            ${mutCheckboxes}
           </div>
-          <div>
-            <div style="font-size:9px;color:#6060aa;margin-bottom:3px;">個数</div>
-            <input id="adm-char-count" type="number" inputmode="numeric" value="1" min="1" max="99"
-              style="width:52px;background:#1a1a35;border:1px solid #2a2a50;color:#e0e0ff;border-radius:6px;padding:6px;font-size:12px;outline:none;text-align:center;">
-          </div>
+          <button onclick="document.querySelectorAll('#adm-mut-checks input').forEach(cb=>cb.checked=false)" style="margin-top:4px;background:#1a1a35;border:1px solid #2a2a50;color:#6060aa;border-radius:5px;padding:3px 8px;font-size:9px;cursor:pointer;font-family:inherit;">すべて解除</button>
+        </div>
+        <div style="margin-bottom:8px;">
+          <div style="font-size:9px;color:#6060aa;margin-bottom:3px;">個数</div>
+          <input id="adm-char-count" type="number" inputmode="numeric" value="1" min="1" max="99"
+            style="width:52px;background:#1a1a35;border:1px solid #2a2a50;color:#e0e0ff;border-radius:6px;padding:6px;font-size:12px;outline:none;text-align:center;">
         </div>
         <button class="adm-btn" style="width:100%;margin-bottom:6px;" onclick="adminGiveChar()">🎁 付与する</button>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
@@ -708,6 +751,15 @@ function openAdminPanel(){
           <button class="adm-btn adm-gold" onclick="adminGiveAll('mythic')">全ミシック付与</button>
           <button class="adm-btn" onclick="adminGiveAll('epic')">全エピック付与</button>
           <button class="adm-btn" onclick="adminGiveRandom(10)">ランダム10体</button>
+        </div>
+      </div>
+
+      <div style="background:#13132a;border:1px solid #aa44ff;border-radius:10px;padding:10px;">
+        <div style="font-size:11px;color:#aa44ff;font-weight:700;margin-bottom:8px;">🧬 変異イベント</div>
+        <div style="font-size:9px;color:#6060aa;margin-bottom:6px;">毎日19:00〜19:10は自動開催。手動でも操作可能。</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <button class="adm-btn" style="border-color:#aa44ff;color:#aa44ff;" onclick="adminStartMutationEvent()">✨ イベント開始</button>
+          <button class="adm-btn" onclick="adminEndMutationEvent()">🛑 イベント終了</button>
         </div>
       </div>
 
@@ -736,17 +788,18 @@ function adminAddMoney(v){if(!v||isNaN(v))return;state.money+=v;updateMoneyDispl
 function adminGiveChar(){
   const id=document.getElementById('adm-char-sel').value;
   const count=parseInt(document.getElementById('adm-char-count').value)||1;
-  const mutId=document.getElementById('adm-mut-sel').value||null;
+  const mutIds=[...document.querySelectorAll('#adm-mut-checks input:checked')].map(cb=>cb.value);
   for(let i=0;i<count;i++) addToInventory(id,1);
-  // 変異付きで付与する場合: 基地の空きスロットに直接配置して変異を設定
-  if(mutId){
+  if(mutIds.length){
     for(let i=0;i<count;i++){
       const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));
       if(freeSlot!==undefined){
         if((state.inventory[id]||0)>0){
           removeFromInventory(id);
           state.base.push({charId:id,slot:freeSlot});
-          setMutation(id,freeSlot,mutId);
+          mutIds.forEach(m=>addMutation(id,freeSlot,m));
+          if(!state.discoveredMutations)state.discoveredMutations=new Set();
+          mutIds.forEach(m=>state.discoveredMutations.add(m));
         }
       }
     }
@@ -754,7 +807,8 @@ function adminGiveChar(){
   }
   renderInventory();calcRate();
   const ch=CHARACTERS.find(c=>c.id===id);
-  showToast('🎁 '+ch.name+(mutId?'['+MUTATIONS[mutId].name+']':'')+'×'+count+'付与');
+  const mutLabel=mutIds.length?'['+mutIds.map(m=>MUTATIONS[m].name).join('+')+']':'';
+  showToast('🎁 '+ch.name+mutLabel+'×'+count+'付与');
   checkAchievements();saveGame();
 }
 function adminGiveAll(rarity){CHARACTERS.filter(c=>c.rarity===rarity).forEach(c=>addToInventory(c.id));renderInventory();calcRate();showToast('🎁 全'+rarity+'付与！');checkAchievements();saveGame();}
@@ -765,6 +819,46 @@ function adminUnlockAch(){ACHIEVEMENTS_DEF.forEach(a=>state.achievements.add(a.i
 function adminMaxBase(){state.baseSlots=32;renderBase();showToast('🏰 基地MAX！');checkAchievements();saveGame();}
 function adminClearBase(){state.base.forEach(b=>addToInventory(b.charId));state.base=[];if(!state.mutations)state.mutations={};state.mutations={};calcRate();renderBase();renderInventory();showToast('🗑 基地クリア');saveGame();}
 function adminClearInventory(){state.inventory={};renderInventory();calcRate();showToast('🗑 所持品クリア');saveGame();}
+
+function checkMutationEvent(){
+  const now=new Date();
+  const h=now.getHours(),m=now.getMinutes();
+  const inEvent=(h===19&&m<10);
+  if(inEvent&&!state.mutationEventActive){
+    state.mutationEventActive=true;
+    showToast('🧬✨ 変異イベント開始！19:10まで変異が出やすい！');
+  } else if(!inEvent&&state.mutationEventActive&&!state.mutationEventManual){
+    state.mutationEventActive=false;
+    showToast('🧬 変異イベント終了');
+  }
+  renderMutationEventBanner();
+}
+function renderMutationEventBanner(){
+  let banner=document.getElementById('mutation-event-banner');
+  if(state.mutationEventActive){
+    if(!banner){
+      banner=document.createElement('div');
+      banner.id='mutation-event-banner';
+      banner.style.cssText='position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#aa44ff,#ff3366,#ffcc00);color:#fff;font-size:11px;font-weight:900;text-align:center;padding:4px 8px;z-index:400;letter-spacing:1px;animation:mythic-glow 1.5s ease-in-out infinite;';
+      banner.textContent='🧬✨ 変異イベント開催中！変異が2倍出やすい！ ✨🧬';
+      document.body.prepend(banner);
+    }
+  } else {
+    if(banner) banner.remove();
+  }
+}
+function adminStartMutationEvent(){
+  state.mutationEventActive=true;
+  state.mutationEventManual=true;
+  renderMutationEventBanner();
+  showToast('🧬✨ 変異イベント開始（手動）');
+}
+function adminEndMutationEvent(){
+  state.mutationEventActive=false;
+  state.mutationEventManual=false;
+  renderMutationEventBanner();
+  showToast('🧬 変異イベント終了（手動）');
+}
 function adminResetGame(){localStorage.removeItem(SAVE_KEY);location.reload();}
 
 // キーボード入力でアドミン（PC）
