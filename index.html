@@ -195,6 +195,17 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
   </div>
   <div id="shop-upgrade-bar" style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px"></div>
   <div class="shop-grid" id="shop-grid"></div>
+  <!-- 変異ラボ -->
+  <div style="background:linear-gradient(135deg,#0d0020,#001a0d);border:2px solid #aa44ff;border-radius:14px;padding:12px;margin-top:4px">
+    <div style="font-size:13px;font-weight:900;color:#aa44ff;margin-bottom:4px;letter-spacing:1px">🧬 変異ラボ</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:10px">$10T消費で所持キャラに好きな変異を1つ付与</div>
+    <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px">📦 キャラを選択</div>
+    <div id="mut-lab-char-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:180px;overflow-y:auto;margin-bottom:10px"></div>
+    <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px">🧬 付与する変異を選択</div>
+    <div id="mut-lab-mut-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px"></div>
+    <div id="mut-lab-preview" style="min-height:28px;font-size:10px;color:var(--muted);text-align:center;margin-bottom:8px"></div>
+    <button id="mut-lab-btn" onclick="executeMutLab()" style="background:linear-gradient(135deg,#aa44ff,#ff3366);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:900;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;width:100%;opacity:.5" disabled>🧬 $10T で変異付与</button>
+  </div>
 </div>
 <div class="page" id="page-inventory">
   <div class="money-bar">
@@ -548,7 +559,11 @@ function refreshShop(){
   const lv=state.shopUpgradeLevel||0;
   let shopable=CHARACTERS.filter(c=>c.rarity!=='mythic'&&c.rarity!=='supermythic'&&c.rarity!=='secret');
   let weights;
-  if(lv>=3){
+  if(lv>=4){
+    // Lv4: レジェンド確定
+    shopable=shopable.filter(c=>c.rarity==='legendary');
+    weights={legendary:100};
+  } else if(lv>=3){
     // Lv3: エピック以上確定
     shopable=shopable.filter(c=>c.rarity==='epic'||c.rarity==='legendary');
     weights={epic:70,legendary:30};
@@ -569,13 +584,13 @@ function refreshShop(){
   state.shopChars=chosen;renderShop();
 }
 function renderShop(){const grid=document.getElementById('shop-grid');grid.innerHTML='';state.shopChars.forEach((ch,i)=>{const affordable=state.money>=ch.price;const card=document.createElement('div');card.className=`shop-card border-${ch.rarity}`;card.innerHTML=`${ch.sold?'<div class="sold-badge">SOLD</div>':''}${svgChar(ch.id)}<div class="char-name">${ch.name}</div><div class="char-rarity r-${ch.rarity}">${RARITIES[ch.rarity].label}</div><div class="char-rate">${fmtRateSm(ch.rate)}</div><button class="buy-btn" ${ch.sold||!affordable?'disabled':''} onclick="buyChar(${i})">${ch.sold?'売り切れ':fmtMoney(ch.price)}</button>`;grid.appendChild(card);});renderShopUpgradeBar();}
-const SHOP_UPGRADE_COSTS=[5000000,25000000,100000000];
-const SHOP_UPGRADE_LABELS=['Lv.1: コモン完全排除','Lv.2: アンコモン完全排除','Lv.3: エピック確定'];
+const SHOP_UPGRADE_COSTS=[5000000,25000000,100000000,1000000000000];
+const SHOP_UPGRADE_LABELS=['Lv.1: コモン完全排除','Lv.2: アンコモン完全排除','Lv.3: エピック確定','Lv.4: レジェンド確定（神域）'];
 function renderShopUpgradeBar(){
   const bar=document.getElementById('shop-upgrade-bar');if(!bar)return;
   const lv=state.shopUpgradeLevel||0;
-  if(lv>=3){
-    bar.innerHTML=`<div style="font-size:10px;font-weight:700;color:#ffcc00">🏆 ショップ最大強化済！エピック確定ガチャ</div><div style="font-size:9px;color:var(--muted)">コモン・アンコモン排除 / エピック以上確定</div>`;return;
+  if(lv>=4){
+    bar.innerHTML=`<div style="font-size:10px;font-weight:700;color:#ffaaff">👑 ショップ神域強化済！レジェンド確定ガチャ</div><div style="font-size:9px;color:var(--muted)">エピック以下排除 / レジェンドのみ確定</div>`;return;
   }
   const cost=SHOP_UPGRADE_COSTS[lv];
   const label=SHOP_UPGRADE_LABELS[lv];
@@ -584,15 +599,95 @@ function renderShopUpgradeBar(){
 }
 function upgradeShop(){
   const lv=state.shopUpgradeLevel||0;
-  if(lv>=3){showToast('🛒 すでに最大強化！');return;}
+  if(lv>=4){showToast('🛒 すでに最大強化！');return;}
   const cost=SHOP_UPGRADE_COSTS[lv];
   if(state.money<cost){showToast('💰 お金が足りない！');return;}
   state.money-=cost;
   state.shopUpgradeLevel=(state.shopUpgradeLevel||0)+1;
   updateMoneyDisplays();
   refreshShop();
-  const msgs=['✅ コモン排除！アンコモン以上が出現！','✅ アンコモン排除！レア以上が出現！','✅ エピック以上確定！最強のショップに！'];
+  const msgs=['✅ コモン排除！アンコモン以上が出現！','✅ アンコモン排除！レア以上が出現！','✅ エピック以上確定！最強のショップに！','👑 レジェンド確定！神域ショップに到達！'];
   showToast(msgs[state.shopUpgradeLevel-1]);
+  saveGame();
+}
+// ===== 変異ラボ =====
+const MUT_LAB_COST = 10e12; // $10T
+let mutLabSelectedUid = null;
+let mutLabSelectedMut = null;
+function renderMutLab(){
+  const charGrid = document.getElementById('mut-lab-char-grid');
+  const mutGrid = document.getElementById('mut-lab-mut-grid');
+  if(!charGrid||!mutGrid) return;
+  // キャラ一覧（インベントリ内のもの、変異なし優先）
+  charGrid.innerHTML = '';
+  // uid単位で表示（変異なしはcharIdまとめて1枚、変異ありは個別）
+  const noMutSeen = new Set();
+  const cards = [];
+  state.invItems.forEach(it => {
+    const ch = CHARACTERS.find(x=>x.id===it.charId);if(!ch)return;
+    if(it.muts&&it.muts.length>0){
+      cards.push({uid:it.uid,ch,muts:it.muts});
+    } else if(!noMutSeen.has(it.charId)){
+      noMutSeen.add(it.charId);
+      cards.push({uid:it.uid,ch,muts:[]});
+    }
+  });
+  if(!cards.length){charGrid.innerHTML='<div style="grid-column:span 4;color:var(--muted);font-size:10px;text-align:center;padding:10px">所持キャラがいない</div>';}
+  cards.forEach(({uid,ch,muts})=>{
+    const sel = mutLabSelectedUid===uid;
+    const mutBadges = muts.map(m=>MUTATIONS[m]?`<div style="font-size:5px;font-weight:900;color:${MUTATIONS[m].color}">${MUTATIONS[m].name}</div>`:'').join('');
+    const d = document.createElement('div');
+    d.style.cssText=`background:${sel?'#1a002a':'var(--card)'};border:2px solid ${sel?'#aa44ff':'var(--border)'};border-radius:8px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:.15s;`;
+    d.innerHTML=`${svgChar(ch.id)}<div style="font-size:7px;font-weight:700;text-align:center;line-height:1.2">${ch.name}</div><div style="font-size:6px;font-weight:900" class="r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div>${mutBadges}`;
+    d.onclick=()=>{mutLabSelectedUid=(mutLabSelectedUid===uid?null:uid);mutLabSelectedMut=null;renderMutLab();};
+    charGrid.appendChild(d);
+  });
+  // 変異一覧
+  mutGrid.innerHTML = '';
+  MUTATION_POOL.forEach(mutId=>{
+    const mut = MUTATIONS[mutId];
+    const sel = mutLabSelectedMut===mutId;
+    const d = document.createElement('div');
+    d.style.cssText=`background:${sel?'#1a0a2a':'var(--card)'};border:2px solid ${sel?mut.color:'var(--border)'};border-radius:8px;padding:6px 8px;cursor:pointer;transition:.15s;`;
+    d.innerHTML=`<div style="font-size:11px;font-weight:900;color:${mut.color}">${mut.name}</div><div style="font-size:9px;color:var(--muted)">${mut.desc}</div>`;
+    d.onclick=()=>{mutLabSelectedMut=(mutLabSelectedMut===mutId?null:mutId);renderMutLab();};
+    mutGrid.appendChild(d);
+  });
+  // プレビュー
+  const preview = document.getElementById('mut-lab-preview');
+  const btn = document.getElementById('mut-lab-btn');
+  const affordable = state.money >= MUT_LAB_COST;
+  if(mutLabSelectedUid && mutLabSelectedMut){
+    const it = state.invItems.find(x=>x.uid===mutLabSelectedUid);
+    const ch = it ? CHARACTERS.find(x=>x.id===it.charId) : null;
+    const mut = MUTATIONS[mutLabSelectedMut];
+    if(ch&&mut){
+      preview.innerHTML=`<span style="color:var(--accent2);font-weight:700">${ch.name}</span> に <span style="color:${mut.color};font-weight:900">${mut.name}</span> を付与（コスト: <span style="color:var(--accent3)">$10T</span>）${!affordable?'<br><span style="color:var(--accent)">💰 お金が足りない！</span>':''}`;
+      btn.disabled = !affordable;
+      btn.style.opacity = affordable ? '1' : '0.5';
+    } else {
+      preview.textContent=''; btn.disabled=true; btn.style.opacity='0.5';
+    }
+  } else {
+    preview.textContent = mutLabSelectedUid ? '変異を選んでください' : mutLabSelectedMut ? 'キャラを選んでください' : 'キャラと変異を両方選択してください';
+    btn.disabled = true; btn.style.opacity = '0.5';
+  }
+}
+function executeMutLab(){
+  if(!mutLabSelectedUid||!mutLabSelectedMut){showToast('キャラと変異を選んでください');return;}
+  if(state.money < MUT_LAB_COST){showToast('💰 お金が足りない！');return;}
+  const it = state.invItems.find(x=>x.uid===mutLabSelectedUid);
+  if(!it){showToast('キャラが見つからない');renderMutLab();return;}
+  const ch = CHARACTERS.find(x=>x.id===it.charId);
+  const mut = MUTATIONS[mutLabSelectedMut];
+  if(it.muts.includes(mutLabSelectedMut)){showToast(`すでに${mut.name}を持っている！`);return;}
+  state.money -= MUT_LAB_COST;
+  it.muts.push(mutLabSelectedMut);
+  if(!state.discoveredMutations)state.discoveredMutations=new Set();
+  state.discoveredMutations.add(mutLabSelectedMut);
+  mutLabSelectedUid=null; mutLabSelectedMut=null;
+  updateMoneyDisplays(); calcRate(); renderBase(); renderInventory(); renderMutLab();
+  showToast(`🧬 ${ch.name} に ${mut.name} を付与した！`);
   saveGame();
 }
 function buyChar(i){const ch=state.shopChars[i];if(ch.sold||state.money<ch.price){showToast('💰 お金が足りない！');return;}state.money-=ch.price;addToInventory(ch.id);state.shopChars[i].sold=true;state.stats.totalBuys=(state.stats.totalBuys||0)+1;renderShop();updateMoneyDisplays();renderInventory();const mutRoll=rollMutation(0.01);if(mutRoll){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[ch.id]||0)>0){removeFromInventory(ch.id);state.base.push({charId:ch.id,slot:freeSlot});addMutation(ch.id,freeSlot,mutRoll);if(!state.discoveredMutations)state.discoveredMutations=new Set();state.discoveredMutations.add(mutRoll);calcRate();renderBase();renderInventory();showToast('✨ '+ch.name+' に '+MUTATIONS[mutRoll].name+' が発現！');}else{showToast('🎉 '+ch.name+' をゲット！');}}else{showToast('🎉 '+ch.name+' をゲット！');}checkQuestProgress();checkAchievements();saveGame();}
@@ -1015,8 +1110,8 @@ allMutIds.forEach(mid=>{const mut=MUTATIONS[mid];const found=state.discoveredMut
 function openModal(html){document.getElementById('modal-content').innerHTML=html;document.getElementById('modal-overlay').style.display='flex';}
 function closeModal(e){if(e&&e.target!==document.getElementById('modal-overlay'))return;document.getElementById('modal-overlay').style.display='none';}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
-function showPage(name){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');document.getElementById('nav-'+name).classList.add('active');if(name==='inventory')renderInventory();if(name==='base')renderBase();if(name==='index')renderIndex();if(name==='trade'){renderTrade();renderCPUTrade();}if(name==='shop')renderShop();if(name==='fusion')renderFusion();if(name==='quest'){renderQuests();renderAchievements();}}
-function renderAll(){renderBase();renderShop();renderInventory();renderIndex();renderTrade();renderCPUTrade();renderFusion();renderQuests();updateMoneyDisplays();updateTimerDisplay();checkQuestProgress();}
+function showPage(name){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');document.getElementById('nav-'+name).classList.add('active');if(name==='inventory')renderInventory();if(name==='base')renderBase();if(name==='index')renderIndex();if(name==='trade'){renderTrade();renderCPUTrade();}if(name==='shop'){renderShop();renderMutLab();}if(name==='fusion')renderFusion();if(name==='quest'){renderQuests();renderAchievements();}}
+function renderAll(){renderBase();renderShop();renderMutLab();renderInventory();renderIndex();renderTrade();renderCPUTrade();renderFusion();renderQuests();updateMoneyDisplays();updateTimerDisplay();checkQuestProgress();}
 
 // キャラ変異: state.mutations = { "charId_slotIndex": [mutationId, ...] } (複数対応)
 // 変異のチャンス: ショップで購入時1%、融合時70%(素材に変異がある場合)
