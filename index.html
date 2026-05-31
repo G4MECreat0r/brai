@@ -634,12 +634,16 @@ function renderMutLab(){
   });
   if(!cards.length){charGrid.innerHTML='<div style="grid-column:span 4;color:var(--muted);font-size:10px;text-align:center;padding:10px">所持キャラがいない</div>';}
   cards.forEach(({uid,ch,muts})=>{
+    const it2 = state.invItems.find(x=>x.uid===uid);
     const sel = mutLabSelectedUid===uid;
+    const labCount = it2 ? (it2.labMuts||0) : 0;
+    const atLimit = labCount >= 2;
     const mutBadges = muts.map(m=>MUTATIONS[m]?`<div style="font-size:5px;font-weight:900;color:${MUTATIONS[m].color}">${MUTATIONS[m].name}</div>`:'').join('');
+    const labBadge = `<div style="font-size:6px;color:${atLimit?'#ff4444':'#44ff88'};font-weight:700">ラボ残${2-labCount}回</div>`;
     const d = document.createElement('div');
-    d.style.cssText=`background:${sel?'#1a002a':'var(--card)'};border:2px solid ${sel?'#aa44ff':'var(--border)'};border-radius:8px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:.15s;`;
-    d.innerHTML=`${svgChar(ch.id)}<div style="font-size:7px;font-weight:700;text-align:center;line-height:1.2">${ch.name}</div><div style="font-size:6px;font-weight:900" class="r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div>${mutBadges}`;
-    d.onclick=()=>{mutLabSelectedUid=(mutLabSelectedUid===uid?null:uid);mutLabSelectedMut=null;renderMutLab();};
+    d.style.cssText=`background:${sel?'#1a002a':'var(--card)'};border:2px solid ${atLimit?'#ff4444':sel?'#aa44ff':'var(--border)'};border-radius:8px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:${atLimit?'not-allowed':'pointer'};transition:.15s;opacity:${atLimit?'0.5':'1'};`;
+    d.innerHTML=`${svgChar(ch.id)}<div style="font-size:7px;font-weight:700;text-align:center;line-height:1.2">${ch.name}</div><div style="font-size:6px;font-weight:900" class="r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div>${mutBadges}${labBadge}`;
+    d.onclick=()=>{if(atLimit){showToast('⛔ このキャラへの付与は2回まで！');return;}mutLabSelectedUid=(mutLabSelectedUid===uid?null:uid);mutLabSelectedMut=null;renderMutLab();};
     charGrid.appendChild(d);
   });
   // 変異一覧
@@ -661,10 +665,18 @@ function renderMutLab(){
     const it = state.invItems.find(x=>x.uid===mutLabSelectedUid);
     const ch = it ? CHARACTERS.find(x=>x.id===it.charId) : null;
     const mut = MUTATIONS[mutLabSelectedMut];
+    const labCount = it ? (it.labMuts||0) : 0;
+    const atLimit = labCount >= 2;
+    const alreadyHas = it && it.muts.includes(mutLabSelectedMut);
     if(ch&&mut){
-      preview.innerHTML=`<span style="color:var(--accent2);font-weight:700">${ch.name}</span> に <span style="color:${mut.color};font-weight:900">${mut.name}</span> を付与（コスト: <span style="color:var(--accent3)">$10T</span>）${!affordable?'<br><span style="color:var(--accent)">💰 お金が足りない！</span>':''}`;
-      btn.disabled = !affordable;
-      btn.style.opacity = affordable ? '1' : '0.5';
+      const canApply = affordable && !atLimit && !alreadyHas;
+      let warn = '';
+      if(atLimit) warn = '<br><span style="color:var(--accent)">⛔ このキャラへの付与は2回まで！</span>';
+      else if(alreadyHas) warn = '<br><span style="color:var(--accent)">⛔ その変異はすでに付いている！</span>';
+      else if(!affordable) warn = '<br><span style="color:var(--accent)">💰 お金が足りない！</span>';
+      preview.innerHTML=`<span style="color:var(--accent2);font-weight:700">${ch.name}</span> に <span style="color:${mut.color};font-weight:900">${mut.name}</span> を付与（コスト: <span style="color:var(--accent3)">$10T</span>）${warn}`;
+      btn.disabled = !canApply;
+      btn.style.opacity = canApply ? '1' : '0.5';
     } else {
       preview.textContent=''; btn.disabled=true; btn.style.opacity='0.5';
     }
@@ -680,9 +692,11 @@ function executeMutLab(){
   if(!it){showToast('キャラが見つからない');renderMutLab();return;}
   const ch = CHARACTERS.find(x=>x.id===it.charId);
   const mut = MUTATIONS[mutLabSelectedMut];
+  if((it.labMuts||0) >= 2){showToast('⛔ このキャラへの付与は2回まで！');return;}
   if(it.muts.includes(mutLabSelectedMut)){showToast(`すでに${mut.name}を持っている！`);return;}
   state.money -= MUT_LAB_COST;
   it.muts.push(mutLabSelectedMut);
+  it.labMuts = (it.labMuts||0) + 1;
   if(!state.discoveredMutations)state.discoveredMutations=new Set();
   state.discoveredMutations.add(mutLabSelectedMut);
   mutLabSelectedUid=null; mutLabSelectedMut=null;
