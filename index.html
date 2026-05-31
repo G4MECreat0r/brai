@@ -685,12 +685,12 @@ let tradeOfferFilter='all';
 function renderTrade(){
   const container=document.getElementById('offer-slots-container');
   container.innerHTML='';
-  const myChars=Object.keys(state.inventory).filter(id=>state.inventory[id]>0);
-  if(!myChars.length){container.innerHTML='<div style="color:var(--muted);font-size:11px">キャラがいない</div>';renderReceiveCandidates();return;}
+  const myChars=Object.keys(state.inventory).filter(id=>{if(state.inventory[id]<=0)return false;const ch=CHARACTERS.find(x=>x.id===id);return ch&&ch.rarity!=='mythic'&&ch.rarity!=='supermythic'&&ch.rarity!=='secret';});
+  if(!myChars.length){container.innerHTML='<div style="color:var(--muted);font-size:11px">トレードできるキャラがいない</div>';renderReceiveCandidates();return;}
   const filterBar=document.createElement('div');
   filterBar.style.cssText='display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px;';
-  const rarities=['all','common','uncommon','rare','epic','legendary','mythic'];
-  const labels={all:'全部',common:'COM',uncommon:'UNC',rare:'RARE',epic:'EPIC',legendary:'LEG',mythic:'MYT'};
+  const rarities=['all','common','uncommon','rare','epic','legendary'];
+  const labels={all:'全部',common:'COM',uncommon:'UNC',rare:'RARE',epic:'EPIC',legendary:'LEG'};
   rarities.forEach(r=>{
     const has=r==='all'||myChars.some(id=>{const ch=CHARACTERS.find(x=>x.id===id);return ch&&ch.rarity===r;});
     if(!has)return;
@@ -722,7 +722,7 @@ function renderTrade(){
   renderReceiveCandidates();
 }
 function selectOfferChar(charId){if(state.tradeOfferChar===charId){state.tradeOfferChar=null;state.tradeReceiveCandidates=[];state.tradeReceiveSelected=null;}else{state.tradeOfferChar=charId;generateReceiveCandidates(charId);}renderTrade();}
-function generateReceiveCandidates(offerCharId){const ch=CHARACTERS.find(x=>x.id===offerCharId);if(!ch){state.tradeReceiveCandidates=[];return;}const rarityOrder=['common','uncommon','rare','epic','legendary','mythic'];const myRarityIdx=rarityOrder.indexOf(ch.rarity);const pool=CHARACTERS.filter(c=>c.rarity!=='mythic'&&c.id!==offerCharId&&Math.abs(rarityOrder.indexOf(c.rarity)-myRarityIdx)<=1);const shuffled=[...pool].sort(()=>Math.random()-.5).slice(0,6);state.tradeReceiveCandidates=shuffled;state.tradeReceiveSelected=null;}
+function generateReceiveCandidates(offerCharId){const ch=CHARACTERS.find(x=>x.id===offerCharId);if(!ch){state.tradeReceiveCandidates=[];return;}const rarityOrder=['common','uncommon','rare','epic','legendary'];const myRarityIdx=rarityOrder.indexOf(ch.rarity);const pool=CHARACTERS.filter(c=>c.rarity!=='mythic'&&c.rarity!=='supermythic'&&c.rarity!=='secret'&&c.id!==offerCharId&&Math.abs(rarityOrder.indexOf(c.rarity)-myRarityIdx)<=1);const shuffled=[...pool].sort(()=>Math.random()-.5).slice(0,6);state.tradeReceiveCandidates=shuffled;state.tradeReceiveSelected=null;}
 function renderReceiveCandidates(){const area=document.getElementById('recv-candidates-area');const hint=document.getElementById('recv-hint');area.innerHTML='';if(!state.tradeOfferChar||!state.tradeReceiveCandidates.length){
   // キャラ未選択 → プレースホルダー枠を表示
   hint.style.display='';
@@ -737,7 +737,7 @@ hint.style.display='none';const grid=document.createElement('div');grid.style.cs
 // ただしこのキャラがインベントリにあれば変異情報は表示できないため通常表示
 card.className='recv-cand'+(selected?' selected':'');card.innerHTML=`${svgChar(ch.id)}<div class="rcn">${ch.name}</div><div class="rcr r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div><div class="rcrate">${fmtRateSm(ch.rate)}</div>`;card.onclick=()=>{state.tradeReceiveSelected=ch.id;renderReceiveCandidates();};grid.appendChild(card);});area.appendChild(grid);}
 function executePlayerTrade(){if(!state.tradeOfferChar){showToast('渡すキャラを選んでください');return;}if(!state.tradeReceiveSelected){showToast('もらうキャラを選んでください');return;}if(!state.inventory[state.tradeOfferChar]||state.inventory[state.tradeOfferChar]<=0){showToast('そのキャラを持っていない！');return;}const giveChar=CHARACTERS.find(x=>x.id===state.tradeOfferChar);const getChar=CHARACTERS.find(x=>x.id===state.tradeReceiveSelected);removeFromInventory(state.tradeOfferChar);addToInventory(state.tradeReceiveSelected);state.tradeOfferChar=null;state.tradeReceiveCandidates=[];state.tradeReceiveSelected=null;state.stats.totalTrades=(state.stats.totalTrades||0)+1;renderTrade();renderInventory();calcRate();showToast(`🔄 ${giveChar.name} → ${getChar.name} トレード成功！`);checkQuestProgress();checkAchievements();saveGame();}
-function generateCPUTrade(){const myChars=Object.keys(state.inventory).filter(id=>state.inventory[id]>0);if(!myChars.length){showToast('キャラがいない');return;}const wantId=myChars[Math.floor(Math.random()*myChars.length)];const wantChar=CHARACTERS.find(x=>x.id===wantId);const rarityOrder=['common','uncommon','rare','epic','legendary'];const myRarityIdx=rarityOrder.indexOf(wantChar.rarity);const offerPool=CHARACTERS.filter(c=>c.rarity!=='mythic'&&c.id!==wantId&&Math.abs(rarityOrder.indexOf(c.rarity)-myRarityIdx)<=1);const offerChar=offerPool[Math.floor(Math.random()*offerPool.length)];
+function generateCPUTrade(){const myChars=Object.keys(state.inventory).filter(id=>state.inventory[id]>0&&(()=>{const ch=CHARACTERS.find(x=>x.id===id);return ch&&ch.rarity!=='mythic'&&ch.rarity!=='supermythic'&&ch.rarity!=='secret';})());if(!myChars.length){showToast('トレードできるキャラがいない');return;}const wantId=myChars[Math.floor(Math.random()*myChars.length)];const wantChar=CHARACTERS.find(x=>x.id===wantId);const rarityOrder=['common','uncommon','rare','epic','legendary'];const myRarityIdx=rarityOrder.indexOf(wantChar.rarity);const offerPool=CHARACTERS.filter(c=>c.rarity!=='mythic'&&c.rarity!=='supermythic'&&c.rarity!=='secret'&&c.id!==wantId&&Math.abs(rarityOrder.indexOf(c.rarity)-myRarityIdx)<=1);const offerChar=offerPool[Math.floor(Math.random()*offerPool.length)];
 // 25%の確率でCPUが変異付きキャラを提示する（同じ変異は付かない、何個でもOK）
 let offerMutations=[];
 if(Math.random()<0.25){
