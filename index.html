@@ -12,6 +12,7 @@
   --text: #e0e0ff; --muted: #6060aa;
   --common: #8888aa; --uncommon: #44cc44; --rare: #4488ff;
   --epic: #cc44ff; --legendary: #ffaa00; --mythic: #ff3366;
+  --supermythic: #ff3366; --secret: #00ffff;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans-serif;overflow:hidden;height:100vh;width:100vw;display:flex;flex-direction:column}
@@ -38,7 +39,7 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
 .expand-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:700}
 .shop-timer{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between}
 .timer-val{font-family:'Zen Dots',sans-serif;color:var(--accent2);font-size:18px}
-.shop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.shop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .shop-card{background:var(--card);border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px;border:2px solid var(--border);position:relative;overflow:hidden}
 .shop-card svg{width:70px;height:70px}
 .shop-card .char-name{font-size:11px;font-weight:700;text-align:center;line-height:1.2}
@@ -144,12 +145,15 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
 .pick-card .pcr{font-size:6px;text-align:center;font-weight:900}
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:12px;font-weight:700;z-index:300;pointer-events:none;opacity:0;transition:.3s;white-space:nowrap}
 .toast.show{opacity:1}
-.r-common{color:var(--common)}.r-uncommon{color:var(--uncommon)}.r-rare{color:var(--rare)}.r-epic{color:var(--epic)}.r-legendary{color:var(--legendary)}.r-mythic{color:var(--mythic)}
-.dot-common{background:var(--common)}.dot-uncommon{background:var(--uncommon)}.dot-rare{background:var(--rare)}.dot-epic{background:var(--epic)}.dot-legendary{background:var(--legendary)}.dot-mythic{background:var(--mythic)}
-.border-common{border-color:var(--common)!important}.border-uncommon{border-color:var(--uncommon)!important}.border-rare{border-color:var(--rare)!important}.border-epic{border-color:var(--epic)!important}.border-legendary{border-color:var(--legendary)!important}.border-mythic{border-color:var(--mythic)!important}
+.r-common{color:var(--common)}.r-uncommon{color:var(--uncommon)}.r-rare{color:var(--rare)}.r-epic{color:var(--epic)}.r-legendary{color:var(--legendary)}.r-mythic{color:var(--mythic)}.r-supermythic{color:#ff8800;text-shadow:0 0 8px #ff8800}.r-secret{background:linear-gradient(90deg,#00ffff,#ff00ff,#00ffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:secret-text 2s linear infinite}
+.dot-common{background:var(--common)}.dot-uncommon{background:var(--uncommon)}.dot-rare{background:var(--rare)}.dot-epic{background:var(--epic)}.dot-legendary{background:var(--legendary)}.dot-mythic{background:var(--mythic)}.dot-supermythic{background:#ff8800}.dot-secret{background:linear-gradient(135deg,#00ffff,#ff00ff)}
+.border-common{border-color:var(--common)!important}.border-uncommon{border-color:var(--uncommon)!important}.border-rare{border-color:var(--rare)!important}.border-epic{border-color:var(--epic)!important}.border-legendary{border-color:var(--legendary)!important}.border-mythic{border-color:var(--mythic)!important}.border-supermythic{border-color:#ff8800!important;animation:supermythic-glow 2s ease-in-out infinite!important}.border-secret{animation:secret-glow 1.5s ease-in-out infinite!important}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 @keyframes mythic-glow{0%,100%{box-shadow:0 0 10px #ff3366,0 0 20px #ff3366}50%{box-shadow:0 0 20px #ff3366,0 0 40px #ff3366,0 0 60px #ff99aa}}
 .border-mythic{animation:mythic-glow 2s ease-in-out infinite!important}
+@keyframes supermythic-glow{0%,100%{box-shadow:0 0 10px #ff8800,0 0 20px #ff8800;border-color:#ff8800}50%{box-shadow:0 0 25px #ff8800,0 0 50px #ffcc00,0 0 80px #ff4400;border-color:#ffcc00}}
+@keyframes secret-glow{0%{box-shadow:0 0 15px #00ffff,0 0 30px #ff00ff;border-color:#00ffff}33%{box-shadow:0 0 15px #ff00ff,0 0 30px #00ffff;border-color:#ff00ff}66%{box-shadow:0 0 15px #ffff00,0 0 30px #00ffff;border-color:#ffff00}100%{box-shadow:0 0 15px #00ffff,0 0 30px #ff00ff;border-color:#00ffff}}
+@keyframes secret-text{0%{background-position:0%}100%{background-position:200%}}
 .quest-badge{position:absolute;top:2px;right:2px;background:var(--accent);color:#fff;font-size:7px;font-weight:700;border-radius:8px;padding:0 4px;min-width:14px;text-align:center;line-height:14px}
 </style>
 </head>
@@ -187,8 +191,9 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
   </div>
   <div class="shop-timer">
     <div><div style="font-size:10px;color:var(--muted)">次のリフレッシュ</div><div class="timer-val" id="shop-timer">5:00</div></div>
-    <div style="font-size:11px;color:var(--muted)">ランダム5体出現</div>
+    <div style="font-size:11px;color:var(--muted)">ランダム10体出現</div>
   </div>
+  <div id="shop-upgrade-bar" style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px"></div>
   <div class="shop-grid" id="shop-grid"></div>
 </div>
 <div class="page" id="page-inventory">
@@ -203,6 +208,8 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
     <button class="filter-btn" onclick="filterInv('epic',this)">エピック</button>
     <button class="filter-btn" onclick="filterInv('legendary',this)">レジェンダリー</button>
     <button class="filter-btn" onclick="filterInv('mythic',this)">ミシック</button>
+    <button class="filter-btn" onclick="filterInv('supermythic',this)" style="color:#ff8800;border-color:#ff8800">スーパーミシック</button>
+    <button class="filter-btn" onclick="filterInv('secret',this)" style="background:linear-gradient(135deg,#001a2a,#1a0030);border-color:#00ffff;color:#00ffff">⭐シークレット</button>
   </div>
   <div class="inv-grid" id="inv-grid"></div>
 </div>
@@ -238,7 +245,7 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
 <div class="page" id="page-fusion">
   <div class="money-bar">
     <div><div class="label">💰 所持金</div><div class="money-val" id="money-display5">$0</div></div>
-    <div style="font-size:10px;color:var(--muted)">⚗️ キャラを合成してミシックを召喚！</div>
+    <div style="font-size:10px;color:var(--muted)" id="money-display5-sub">⚗️ キャラを合成してミシックを召喚！</div>
   </div>
   <div class="fusion-section">
     <div class="fusion-title">✨ ミシック召喚レシピ</div>
@@ -254,6 +261,11 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
     <div class="fusion-title" style="color:#ff3366">👑 ミシック究極融合</div>
     <div style="font-size:10px;color:var(--muted);margin-bottom:10px">同じミシック3体 → 変異50%チャンスで強化体を召喚！</div>
     <div id="mythic-fusion"></div>
+  </div>
+  <div class="fusion-section" style="border-color:#00ffff;background:linear-gradient(135deg,#000a1a,#0a0020)">
+    <div class="fusion-title" style="background:linear-gradient(90deg,#00ffff,#ff00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">💎 シークレット召喚</div>
+    <div style="font-size:10px;color:#aaaaff;margin-bottom:10px">スーパーミシック2体 + ミシック1体 → 伝説を超えた存在。素材の変異は必ず引き継がれる！</div>
+    <div id="secret-fusion"></div>
   </div>
 </div>
 <div class="page" id="page-quest">
@@ -349,9 +361,12 @@ whaleasaurus:`<svg viewBox="0 0 60 60"><ellipse cx="28" cy="32" rx="22" ry="16" 
 goldfish_god:`<svg viewBox="0 0 60 60"><defs><radialGradient id="gg" cx="40%" cy="35%"><stop offset="0%" stop-color="#ffeeaa"/><stop offset="100%" stop-color="#ff8800"/></radialGradient></defs><ellipse cx="28" cy="32" rx="18" ry="12" fill="url(#gg)"/><path d="M46,32 Q56,20 54,32 Q56,44 46,32Z" fill="#ffaa00"/><path d="M10,22 Q2,16 8,28Z" fill="#ffaa00"/><path d="M10,42 Q2,48 8,36Z" fill="#ffaa00"/><circle cx="18" cy="28" r="5" fill="#fff"/><circle cx="19.5" cy="29" r="2.5" fill="#000"/><circle cx="40" cy="16" r="4" fill="#ffdd00" opacity=".7"/></svg>`,
 rainbowski:`<svg viewBox="0 0 60 60"><path d="M6,48 Q10,24 30,20 Q50,24 54,48" fill="none" stroke="#ff4444" stroke-width="4"/><path d="M8,50 Q12,28 30,24 Q48,28 52,50" fill="none" stroke="#ff8800" stroke-width="3"/><path d="M10,52 Q14,32 30,28 Q46,32 50,52" fill="none" stroke="#ffdd00" stroke-width="3"/><path d="M12,54 Q16,36 30,32 Q44,36 48,54" fill="none" stroke="#44dd44" stroke-width="3"/><circle cx="30" cy="16" r="10" fill="#f5c5a3"/><circle cx="25" cy="14" r="2.5" fill="#fff"/><circle cx="25.8" cy="14.5" r="1.2" fill="#000"/><circle cx="35" cy="14" r="2.5" fill="#fff"/><circle cx="35.8" cy="14.5" r="1.2" fill="#000"/></svg>`,
 cosmicbrain:`<svg viewBox="0 0 60 60"><defs><radialGradient id="cg" cx="40%" cy="35%"><stop offset="0%" stop-color="#ffaaff"/><stop offset="60%" stop-color="#ff3366"/><stop offset="100%" stop-color="#880022"/></radialGradient></defs><circle cx="30" cy="28" r="22" fill="url(#cg)"/><path d="M16,22 Q20,16 26,20 Q22,12 30,14 Q38,12 34,20 Q40,16 44,22 Q44,30 38,32 Q42,36 36,38 Q32,44 30,40 Q28,44 24,38 Q18,36 22,32 Q16,30 16,22Z" fill="#ffddff" opacity=".3"/><circle cx="23" cy="25" r="4.5" fill="#fff"/><circle cx="24.5" cy="26" r="2.2" fill="#cc0044"/><circle cx="37" cy="25" r="4.5" fill="#fff"/><circle cx="38.5" cy="26" r="2.2" fill="#cc0044"/><path d="M23,33 Q30,38 37,33" stroke="#ff66aa" stroke-width="2" fill="none"/></svg>`,
-omegaboss:`<svg viewBox="0 0 60 60"><defs><radialGradient id="og" cx="50%" cy="30%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#ffdd00"/><stop offset="100%" stop-color="#aa6600"/></radialGradient></defs><polygon points="30,2 38,18 56,18 42,30 48,48 30,38 12,48 18,30 4,18 22,18" fill="url(#og)"/><circle cx="30" cy="28" r="12" fill="#ffcc00" opacity=".9"/><circle cx="24" cy="26" r="3.5" fill="#fff"/><circle cx="25" cy="27" r="1.8" fill="#000"/><circle cx="36" cy="26" r="3.5" fill="#fff"/><circle cx="37" cy="27" r="1.8" fill="#000"/><path d="M24,33 Q30,38 36,33" stroke="#996600" stroke-width="2" fill="none"/></svg>`
+omegaboss:`<svg viewBox="0 0 60 60"><defs><radialGradient id="og" cx="50%" cy="30%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#ffdd00"/><stop offset="100%" stop-color="#aa6600"/></radialGradient></defs><polygon points="30,2 38,18 56,18 42,30 48,48 30,38 12,48 18,30 4,18 22,18" fill="url(#og)"/><circle cx="30" cy="28" r="12" fill="#ffcc00" opacity=".9"/><circle cx="24" cy="26" r="3.5" fill="#fff"/><circle cx="25" cy="27" r="1.8" fill="#000"/><circle cx="36" cy="26" r="3.5" fill="#fff"/><circle cx="37" cy="27" r="1.8" fill="#000"/><path d="M24,33 Q30,38 36,33" stroke="#996600" stroke-width="2" fill="none"/></svg>`,
+voidgod:`<svg viewBox="0 0 60 60"><defs><radialGradient id="vgg" cx="50%" cy="40%"><stop offset="0%" stop-color="#cc88ff"/><stop offset="50%" stop-color="#440088"/><stop offset="100%" stop-color="#000011"/></radialGradient></defs><circle cx="30" cy="30" r="26" fill="url(#vgg)"/><path d="M30,4 L34,16 L46,12 L38,22 L50,26 L38,30 L46,42 L34,38 L30,50 L26,38 L14,42 L22,30 L10,26 L22,22 L14,12 L26,16Z" fill="#aa44ff" opacity=".5"/><circle cx="23" cy="27" r="5" fill="#fff"/><circle cx="24.5" cy="28" r="2.5" fill="#220055"/><circle cx="37" cy="27" r="5" fill="#fff"/><circle cx="38.5" cy="28" r="2.5" fill="#220055"/><path d="M22,35 Q30,40 38,35" stroke="#ff88ff" stroke-width="2.5" fill="none"/><circle cx="30" cy="30" r="8" fill="none" stroke="#cc44ff" stroke-width="1" opacity=".6"/><circle cx="30" cy="30" r="14" fill="none" stroke="#8822ff" stroke-width="0.8" opacity=".4"/></svg>`,
+abyssking:`<svg viewBox="0 0 60 60"><defs><radialGradient id="akg" cx="45%" cy="30%"><stop offset="0%" stop-color="#ffaa44"/><stop offset="40%" stop-color="#cc4400"/><stop offset="100%" stop-color="#1a0000"/></radialGradient></defs><rect x="4" y="4" width="52" height="52" rx="8" fill="url(#akg)"/><path d="M30,2 L36,14 L50,10 L42,22 L56,26 L42,30 L50,44 L36,40 L30,54 L24,40 L10,44 L18,30 L4,26 L18,22 L10,10 L24,14Z" fill="#ff6600" opacity=".4"/><circle cx="22" cy="26" r="5" fill="#ffffaa"/><circle cx="23.5" cy="27" r="2.5" fill="#8b0000"/><circle cx="38" cy="26" r="5" fill="#ffffaa"/><circle cx="39.5" cy="27" r="2.5" fill="#8b0000"/><path d="M22,35 Q30,41 38,35" stroke="#ffaa00" stroke-width="3" fill="none"/><path d="M24,16 L22,8 L28,14 L30,6 L32,14 L38,8 L36,16" fill="#ffcc00" stroke="#ff8800" stroke-width="1"/></svg>`,
+omnisecret:`<svg viewBox="0 0 60 60"><defs><radialGradient id="osg" cx="50%" cy="40%"><stop offset="0%" stop-color="#ffffff"/><stop offset="25%" stop-color="#00ffff"/><stop offset="60%" stop-color="#ff00ff"/><stop offset="100%" stop-color="#000033"/></radialGradient><radialGradient id="osg2" cx="50%" cy="50%"><stop offset="0%" stop-color="#ffff00"/><stop offset="100%" stop-color="#ff00ff" stop-opacity="0"/></radialGradient></defs><circle cx="30" cy="30" r="28" fill="url(#osg)"/><circle cx="30" cy="30" r="20" fill="url(#osg2)" opacity=".5"/><path d="M30,2 L33,12 L42,6 L38,16 L48,14 L42,22 L52,24 L44,28 L52,34 L42,34 L46,44 L36,40 L34,50 L30,42 L26,50 L24,40 L14,44 L18,34 L8,34 L16,28 L8,24 L18,22 L12,14 L22,16 L18,6 L27,12Z" fill="#fff" opacity=".3"/><circle cx="23" cy="27" r="5.5" fill="#fff"/><circle cx="24.5" cy="28" r="2.8" fill="#00aaff"/><circle cx="26" cy="26.5" r="1" fill="#fff"/><circle cx="37" cy="27" r="5.5" fill="#fff"/><circle cx="38.5" cy="28" r="2.8" fill="#ff00aa"/><circle cx="40" cy="26.5" r="1" fill="#fff"/><path d="M22,36 Q30,43 38,36" stroke="#ffff00" stroke-width="3" fill="none"/><path d="M30,6 L30,2 M30,58 L30,54 M6,30 L2,30 M58,30 L54,30" stroke="#00ffff" stroke-width="1.5" opacity=".8"/></svg>`
 };
-const RARITIES={common:{label:'COMMON',weight:45},uncommon:{label:'UNCOMMON',weight:30},rare:{label:'RARE',weight:15},epic:{label:'EPIC',weight:7},legendary:{label:'LEGENDARY',weight:2},mythic:{label:'MYTHIC',weight:1}};
+const RARITIES={common:{label:'COMMON',weight:45},uncommon:{label:'UNCOMMON',weight:30},rare:{label:'RARE',weight:15},epic:{label:'EPIC',weight:7},legendary:{label:'LEGENDARY',weight:2},mythic:{label:'MYTHIC',weight:1},supermythic:{label:'SUPER MYTHIC',weight:0},secret:{label:'⭐SECRET⭐',weight:0}};
 const CHARACTERS=[
 {id:'tralalero',name:'トラッラレロ',rarity:'common',rate:4,desc:'有名なサメ男。ズボンが特徴的。'},
 {id:'bombardino',name:'ボンバルディーノ',rarity:'common',rate:6,desc:'ワニ。軍用機が好き。'},
@@ -405,13 +420,18 @@ const CHARACTERS=[
 {id:'goldfish_god',name:'金魚神',rarity:'legendary',rate:510,desc:'神格化された金魚。願いを叶える。'},
 {id:'rainbowski',name:'レインボースキー',rarity:'legendary',rate:470,desc:'虹を纏う謎のスキーヤー。'},
 {id:'cosmicbrain',name:'コズミックブレイン',rarity:'mythic',rate:9999,desc:'宇宙の知性の具現化。⚗️融合でのみ入手可能！'},
-{id:'omegaboss',name:'オメガボス',rarity:'mythic',rate:99999,desc:'全てのブレインロットの支配者。⚗️伝説の融合が必要！'}
+{id:'omegaboss',name:'オメガボス',rarity:'mythic',rate:99999,desc:'全てのブレインロットの支配者。⚗️伝説の融合が必要！'},
+{id:'voidgod',name:'ヴォイドゴッド',rarity:'supermythic',rate:499999,desc:'虚空に座する神。コズミックとオメガの間に存在する。⚗️スーパーミシック融合で入手！'},
+{id:'abyssking',name:'アビスキング',rarity:'supermythic',rate:599999,desc:'深淵の支配者。その力はオメガを凌駕する。⚗️スーパーミシック融合で入手！'},
+{id:'omnisecret',name:'オムニシークレット・Ω',rarity:'secret',rate:9999999,desc:'全ての次元を超えた存在。シークレット融合でのみ降臨！変異を纏い、宇宙の全てを支配する。'}
 ];
 const FUSION_RECIPES=[
 {id:'cosmicbrain',result:'cosmicbrain',ingredients:[{id:'tantan',count:1},{id:'jellyqueen',count:1},{id:'solarphoenix',count:1}],name:'コズミックブレイン召喚'},
-{id:'omegaboss',result:'omegaboss',ingredients:[{id:'draconite',count:1},{id:'whaleasaurus',count:1},{id:'goldfish_god',count:1},{id:'rainbowski',count:1}],name:'オメガボス降臨'}
+{id:'omegaboss',result:'omegaboss',ingredients:[{id:'draconite',count:1},{id:'whaleasaurus',count:1},{id:'goldfish_god',count:1},{id:'rainbowski',count:1}],name:'オメガボス降臨'},
+{id:'voidgod',result:'voidgod',ingredients:[{id:'cosmicbrain',count:2},{id:'omegaboss',count:1}],name:'ヴォイドゴッド顕現',isSuper:true},
+{id:'abyssking',result:'abyssking',ingredients:[{id:'omegaboss',count:2},{id:'cosmicbrain',count:1}],name:'アビスキング覚醒',isSuper:true}
 ];
-const RARITY_ORDER=['common','uncommon','rare','epic','legendary'];
+const RARITY_ORDER=['common','uncommon','rare','epic','legendary','mythic','supermythic'];
 const DAILY_QUESTS_DEF=[
 {id:'buy3',name:'ショッピング好き',desc:'ショップで3体購入する',target:3,reward:5000,icon:'🛒',type:'buy'},
 {id:'trade3',name:'凄腕トレーダー',desc:'トレードを3回行う',target:3,reward:8000,icon:'🔄',type:'trade'},
@@ -433,11 +453,11 @@ const ACHIEVEMENTS_DEF=[
 {id:'rich',name:'億万長者',desc:'$100,000,000稼ぐ',icon:'💎',condition:s=>s.stats.totalEarned>=100000000}
 ];
 // invItems: [{uid, charId, muts:[mutId,...]}]  変異なし = muts:[]
-let state={money:500000,rate:0,baseSlots:8,base:[],inventory:{},invItems:[],shopChars:[],shopTimer:180,mutations:{},discoveredMutations:new Set(),mutationEventActive:false,tradeOfferChar:null,tradeReceiveCandidates:[],tradeReceiveSelected:null,cpuTradeOffer:null,discovered:new Set(),quests:{},achievements:new Set(),stats:{totalBuys:0,totalTrades:0,totalEarned:0,totalFusions:0,sessionDiscovers:0}};
+let state={money:500000,rate:0,baseSlots:8,base:[],inventory:{},invItems:[],shopChars:[],shopTimer:180,mutations:{},discoveredMutations:new Set(),mutationEventActive:false,tradeOfferChar:null,tradeReceiveCandidates:[],tradeReceiveSelected:null,cpuTradeOffer:null,discovered:new Set(),quests:{},achievements:new Set(),stats:{totalBuys:0,totalTrades:0,totalEarned:0,totalFusions:0,sessionDiscovers:0},shopUpgradeLevel:0};
 const SAVE_KEY='brainrot_v3';
 let _uidCounter=1;
 function genUid(){return 'u'+(Date.now()%1e9)+'_'+(++_uidCounter);}
-function saveGame(){try{const d={...state,invItems:state.invItems||[],discovered:[...state.discovered],achievements:[...state.achievements],mutations:state.mutations||{},discoveredMutations:[...(state.discoveredMutations||new Set())]};localStorage.setItem(SAVE_KEY,JSON.stringify(d));const el=document.getElementById('save-indicator');if(el){el.textContent='💾 セーブ済';el.style.color='var(--accent2)';}}catch(e){}}
+function saveGame(){try{const d={...state,invItems:state.invItems||[],discovered:[...state.discovered],achievements:[...state.achievements],mutations:state.mutations||{},discoveredMutations:[...(state.discoveredMutations||new Set())],shopUpgradeLevel:state.shopUpgradeLevel||0};localStorage.setItem(SAVE_KEY,JSON.stringify(d));const el=document.getElementById('save-indicator');if(el){el.textContent='💾 セーブ済';el.style.color='var(--accent2)';}}catch(e){}}
 function loadGame(){try{
   // v3
   let raw=localStorage.getItem('brainrot_v3');
@@ -448,6 +468,7 @@ function loadGame(){try{
     state.discovered=new Set(d.discovered||[]);state.quests=d.quests||{};state.achievements=new Set(d.achievements||[]);
     state.stats=d.stats||{totalBuys:0,totalTrades:0,totalEarned:0,totalFusions:0,sessionDiscovers:0};
     state.mutations=d.mutations||{};state.discoveredMutations=new Set(d.discoveredMutations||[]);
+    state.shopUpgradeLevel=d.shopUpgradeLevel||0;
     // inventory互換（旧フォーマット併用）
     state.inventory={};state.invItems.forEach(it=>{state.inventory[it.charId]=(state.inventory[it.charId]||0)+1;});
     return true;
@@ -479,9 +500,9 @@ function removeFromInventory(id,count=1){let removed=0;for(let i=0;i<count;i++){
 function removeFromInventoryByUid(uid){const idx=state.invItems.findIndex(x=>x.uid===uid);if(idx===-1)return false;state.invItems.splice(idx,1);syncInventoryHash();return true;}
 // 変異付きで追加
 function addToInventoryWithMuts(id,muts){state.invItems.push({uid:genUid(),charId:id,muts:[...muts]});syncInventoryHash();state.discovered.add(id);}
-function fmtMoney(v){return v>=1e9?`$${(v/1e9).toFixed(1)}B`:v>=1e6?`$${(v/1e6).toFixed(1)}M`:v>=1e3?`$${(v/1e3).toFixed(1)}K`:`$${Math.floor(v)}`;}
-function fmtRate(v){return v>=1e6?`$${(v/1e6).toFixed(1)}M/s`:v>=1e3?`$${(v/1e3).toFixed(1)}K/s`:`$${v.toFixed(1)}/s`;}
-function fmtRateSm(v){return v>=1e6?`$${(v/1e6).toFixed(1)}M/s`:v>=1e3?`$${(v/1e3).toFixed(1)}K/s`:`$${v}/s`;}
+function fmtMoney(v){return v>=1e18?`$${(v/1e18).toFixed(2)}Qi`:v>=1e15?`$${(v/1e15).toFixed(2)}Qa`:v>=1e12?`$${(v/1e12).toFixed(2)}T`:v>=1e9?`$${(v/1e9).toFixed(2)}B`:v>=1e6?`$${(v/1e6).toFixed(2)}M`:v>=1e3?`$${(v/1e3).toFixed(1)}K`:`$${Math.floor(v)}`;}
+function fmtRate(v){return v>=1e18?`$${(v/1e18).toFixed(2)}Qi/s`:v>=1e15?`$${(v/1e15).toFixed(2)}Qa/s`:v>=1e12?`$${(v/1e12).toFixed(2)}T/s`:v>=1e9?`$${(v/1e9).toFixed(2)}B/s`:v>=1e6?`$${(v/1e6).toFixed(2)}M/s`:v>=1e3?`$${(v/1e3).toFixed(1)}K/s`:`$${v.toFixed(1)}/s`;}
+function fmtRateSm(v){return v>=1e18?`$${(v/1e18).toFixed(2)}Qi/s`:v>=1e15?`$${(v/1e15).toFixed(2)}Qa/s`:v>=1e12?`$${(v/1e12).toFixed(2)}T/s`:v>=1e9?`$${(v/1e9).toFixed(2)}B/s`:v>=1e6?`$${(v/1e6).toFixed(2)}M/s`:v>=1e3?`$${(v/1e3).toFixed(1)}K/s`:`$${v}/s`;}
 function updateMoneyDisplays(){['money-display','money-display2','money-display3','money-display4','money-display5','money-display6'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=fmtMoney(state.money);});['rate-display','rate-display2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=fmtRate(state.rate);});}
 function calcRate(){state.rate=state.base.reduce((s,b)=>{const c=CHARACTERS.find(x=>x.id===b.charId);if(!c)return s;const muts=getMutations(b.charId,b.slot);const mult=muts.reduce((m,mut)=>m*(mut?mut.mult:1.0),1.0);return s+c.rate*mult;},0);updateMoneyDisplays();}
 function initGame(){const loaded=loadGame();if(!loaded){addToInventory('tralalero',2);addToInventory('bombardino',1);addToInventory('chimpanzini',1);addToInventory('frigo',1);initQuests();}if(!state.shopChars||state.shopChars.length===0)refreshShop();calcRate();renderAll();setInterval(()=>{const e=state.rate;state.money+=e;state.stats.totalEarned=(state.stats.totalEarned||0)+e;updateMoneyDisplays();checkQuestProgress();},1000);setInterval(()=>{state.shopTimer--;if(state.shopTimer<=0){refreshShop();state.shopTimer=180;}updateTimerDisplay();},1000);setInterval(()=>saveGame(),30000);
@@ -523,8 +544,57 @@ function placeChar(charId,slot){
   if(it){placeCharByUid(it.uid,slot);}
   else{showToast('キャラが見つからない');}
 }
-function refreshShop(){const shopable=CHARACTERS.filter(c=>c.rarity!=='mythic');const weights={common:45,uncommon:30,rare:15,epic:7,legendary:3};const pool=shopable.flatMap(c=>Array(weights[c.rarity]||5).fill(c));const chosen=[];const used=new Set();let tries=0;while(chosen.length<5&&tries<200){tries++;const pick=pool[Math.floor(Math.random()*pool.length)];if(!used.has(pick.id)){chosen.push({...pick,price:pick.rate*200,sold:false});used.add(pick.id);}}state.shopChars=chosen;renderShop();}
-function renderShop(){const grid=document.getElementById('shop-grid');grid.innerHTML='';state.shopChars.forEach((ch,i)=>{const affordable=state.money>=ch.price;const card=document.createElement('div');card.className=`shop-card border-${ch.rarity}`;card.innerHTML=`${ch.sold?'<div class="sold-badge">SOLD</div>':''}${svgChar(ch.id)}<div class="char-name">${ch.name}</div><div class="char-rarity r-${ch.rarity}">${RARITIES[ch.rarity].label}</div><div class="char-rate">${fmtRateSm(ch.rate)}</div><button class="buy-btn" ${ch.sold||!affordable?'disabled':''} onclick="buyChar(${i})">${ch.sold?'売り切れ':fmtMoney(ch.price)}</button>`;grid.appendChild(card);});}
+function refreshShop(){
+  const lv=state.shopUpgradeLevel||0;
+  let shopable=CHARACTERS.filter(c=>c.rarity!=='mythic'&&c.rarity!=='supermythic'&&c.rarity!=='secret');
+  let weights;
+  if(lv>=3){
+    // Lv3: エピック以上確定
+    shopable=shopable.filter(c=>c.rarity==='epic'||c.rarity==='legendary');
+    weights={epic:70,legendary:30};
+  } else if(lv>=2){
+    // Lv2: レア以上
+    shopable=shopable.filter(c=>c.rarity==='rare'||c.rarity==='epic'||c.rarity==='legendary');
+    weights={rare:50,epic:35,legendary:15};
+  } else if(lv>=1){
+    // Lv1: アンコモン以上
+    shopable=shopable.filter(c=>c.rarity==='uncommon'||c.rarity==='rare'||c.rarity==='epic'||c.rarity==='legendary');
+    weights={uncommon:50,rare:30,epic:15,legendary:5};
+  } else {
+    weights={common:45,uncommon:30,rare:15,epic:7,legendary:3};
+  }
+  const pool=shopable.flatMap(c=>Array(weights[c.rarity]||5).fill(c));
+  const chosen=[];const used=new Set();let tries=0;
+  while(chosen.length<10&&tries<400){tries++;const pick=pool[Math.floor(Math.random()*pool.length)];if(!used.has(pick.id)){chosen.push({...pick,price:pick.rate*200,sold:false});used.add(pick.id);}}
+  state.shopChars=chosen;renderShop();
+}
+function renderShop(){const grid=document.getElementById('shop-grid');grid.innerHTML='';state.shopChars.forEach((ch,i)=>{const affordable=state.money>=ch.price;const card=document.createElement('div');card.className=`shop-card border-${ch.rarity}`;card.innerHTML=`${ch.sold?'<div class="sold-badge">SOLD</div>':''}${svgChar(ch.id)}<div class="char-name">${ch.name}</div><div class="char-rarity r-${ch.rarity}">${RARITIES[ch.rarity].label}</div><div class="char-rate">${fmtRateSm(ch.rate)}</div><button class="buy-btn" ${ch.sold||!affordable?'disabled':''} onclick="buyChar(${i})">${ch.sold?'売り切れ':fmtMoney(ch.price)}</button>`;grid.appendChild(card);});renderShopUpgradeBar();}
+const SHOP_UPGRADE_COSTS=[5000000,25000000,100000000];
+const SHOP_UPGRADE_LABELS=['Lv.1: コモン完全排除','Lv.2: アンコモン完全排除','Lv.3: エピック確定'];
+function renderShopUpgradeBar(){
+  const bar=document.getElementById('shop-upgrade-bar');if(!bar)return;
+  const lv=state.shopUpgradeLevel||0;
+  if(lv>=3){
+    bar.innerHTML=`<div style="font-size:10px;font-weight:700;color:#ffcc00">🏆 ショップ最大強化済！エピック確定ガチャ</div><div style="font-size:9px;color:var(--muted)">コモン・アンコモン排除 / エピック以上確定</div>`;return;
+  }
+  const cost=SHOP_UPGRADE_COSTS[lv];
+  const label=SHOP_UPGRADE_LABELS[lv];
+  const affordable=state.money>=cost;
+  bar.innerHTML=`<div><div style="font-size:10px;font-weight:700;color:var(--accent3)">🛒 ショップアップグレード Lv.${lv+1}</div><div style="font-size:9px;color:var(--muted)">${label}</div></div><button onclick="upgradeShop()" style="background:${affordable?'linear-gradient(135deg,#ffcc00,#ff8800)':'var(--border)'};color:${affordable?'#000':'var(--muted)'};border:none;border-radius:8px;padding:6px 12px;font-size:10px;font-weight:700;cursor:${affordable?'pointer':'not-allowed'};font-family:inherit;white-space:nowrap;">${fmtMoney(cost)}</button>`;
+}
+function upgradeShop(){
+  const lv=state.shopUpgradeLevel||0;
+  if(lv>=3){showToast('🛒 すでに最大強化！');return;}
+  const cost=SHOP_UPGRADE_COSTS[lv];
+  if(state.money<cost){showToast('💰 お金が足りない！');return;}
+  state.money-=cost;
+  state.shopUpgradeLevel=(state.shopUpgradeLevel||0)+1;
+  updateMoneyDisplays();
+  refreshShop();
+  const msgs=['✅ コモン排除！アンコモン以上が出現！','✅ アンコモン排除！レア以上が出現！','✅ エピック以上確定！最強のショップに！'];
+  showToast(msgs[state.shopUpgradeLevel-1]);
+  saveGame();
+}
 function buyChar(i){const ch=state.shopChars[i];if(ch.sold||state.money<ch.price){showToast('💰 お金が足りない！');return;}state.money-=ch.price;addToInventory(ch.id);state.shopChars[i].sold=true;state.stats.totalBuys=(state.stats.totalBuys||0)+1;renderShop();updateMoneyDisplays();renderInventory();const mutRoll=rollMutation(0.01);if(mutRoll){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[ch.id]||0)>0){removeFromInventory(ch.id);state.base.push({charId:ch.id,slot:freeSlot});addMutation(ch.id,freeSlot,mutRoll);if(!state.discoveredMutations)state.discoveredMutations=new Set();state.discoveredMutations.add(mutRoll);calcRate();renderBase();renderInventory();showToast('✨ '+ch.name+' に '+MUTATIONS[mutRoll].name+' が発現！');}else{showToast('🎉 '+ch.name+' をゲット！');}}else{showToast('🎉 '+ch.name+' をゲット！');}checkQuestProgress();checkAchievements();saveGame();}
 function updateTimerDisplay(){const m=Math.floor(state.shopTimer/60),s=state.shopTimer%60;const el=document.getElementById('shop-timer');if(el)el.textContent=`${m}:${s.toString().padStart(2,'0')}`;}
 let invFilter='all';
@@ -699,18 +769,175 @@ if(offerMutations.length){
 }
 state.cpuTradeOffer=null;state.stats.totalTrades=(state.stats.totalTrades||0)+1;renderCPUTrade();renderInventory();calcRate();const mutMsg=offerMutations.length?' 🧬変異付き！':'';showToast(`🎉 ${wantChar.name}→${offerChar.name}${mutMsg} CPUトレード成功！`);checkQuestProgress();checkAchievements();saveGame();}
 function rejectCPUTrade(){state.cpuTradeOffer=null;renderCPUTrade();showToast('❌ オファーを断った');}
-function renderFusion(){const recipesDiv=document.getElementById('fusion-recipes');recipesDiv.innerHTML='';FUSION_RECIPES.forEach(recipe=>{const resultChar=CHARACTERS.find(c=>c.id===recipe.result);let canFuse=true;let missingParts=[];recipe.ingredients.forEach(ing=>{const have=state.inventory[ing.id]||0;if(have<ing.count){canFuse=false;missingParts.push(ing);}});const div=document.createElement('div');div.className='fusion-recipe';
+function renderFusion(){const recipesDiv=document.getElementById('fusion-recipes');recipesDiv.innerHTML='';FUSION_RECIPES.filter(r=>!r.isSuper).forEach(recipe=>{const resultChar=CHARACTERS.find(c=>c.id===recipe.result);let canFuse=true;let missingParts=[];recipe.ingredients.forEach(ing=>{const have=state.inventory[ing.id]||0;if(have<ing.count){canFuse=false;missingParts.push(ing);}});const div=document.createElement('div');div.className='fusion-recipe';
 let ingsHtml=recipe.ingredients.map(ing=>{const ch=CHARACTERS.find(c=>c.id===ing.id);const have=state.inventory[ing.id]||0;const ok=have>=ing.count;const ingMuts=getIngredientMutations(ing.id);const ingMutHtml=ingMuts.length?ingMuts.map(m=>MUTATIONS[m]?`<div style="font-size:5px;font-weight:700;color:${MUTATIONS[m].color};line-height:1.2">${MUTATIONS[m].name}</div>`:'').join(''):'';const ingMult=ingMuts.reduce((a,m)=>a*(MUTATIONS[m]?MUTATIONS[m].mult:1),1);const ingEffRate=ch?ch.rate*ingMult:0;return `<div class="fusion-ing" style="${ok?'border-color:var(--accent2)':''}">${svgChar(ing.id)}<div class="fin" style="${ok?'color:var(--accent2)':''}">${ch?ch.name:'?'}</div><div class="fic">${have}/${ing.count}</div>${ingMuts.length?`<div style="text-align:center;margin-top:1px">${ingMutHtml}<div style="font-size:5px;color:var(--accent3)">${fmtRateSm(ingEffRate)}</div></div>`:''}</div>`;}).join('<div style="font-size:14px;color:var(--muted);align-self:center">＋</div>');
-div.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-size:11px;font-weight:700">✨ ${recipe.name}</div></div><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:8px">${ingsHtml}</div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div class="fusion-result"><div style="animation:float 3s ease-in-out infinite">${svgChar(resultChar.id)}</div><div class="fusion-result-info"><div class="frn r-${resultChar.rarity}">${resultChar.name}</div><div class="frr r-${resultChar.rarity}">${RARITIES[resultChar.rarity].label}</div><div class="frrate">${fmtRateSm(resultChar.rate)}</div></div></div><button class="fusion-btn" ${canFuse?'':'disabled'} onclick="executeFusion('${recipe.id}')">${canFuse?'⚗️ 融合！':'素材不足'}</button></div>${!canFuse?`<div class="fusion-missing">不足: ${missingParts.map(p=>{const c=CHARACTERS.find(x=>x.id===p.id);return c?c.name:'?';}).join(', ')}</div>`:''}`;recipesDiv.appendChild(div);});const upgradeDiv=document.getElementById('upgrade-fusion');upgradeDiv.innerHTML='';const upgradeable=[];Object.entries(state.inventory).forEach(([id,count])=>{if(count>=3){const ch=CHARACTERS.find(c=>c.id===id);if(ch&&ch.rarity!=='legendary'&&ch.rarity!=='mythic')upgradeable.push({ch,count});}});if(!upgradeable.length){upgradeDiv.innerHTML='<div style="color:var(--muted);font-size:11px;text-align:center;padding:10px">同じキャラを3体以上持つと融合可能！</div>';renderMythicFusion();return;}const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(2,1fr);gap:8px;';upgradeable.forEach(({ch,count})=>{const nextRarity=RARITY_ORDER[RARITY_ORDER.indexOf(ch.rarity)+1];const nextRarityLabel=RARITIES[nextRarity]?.label||'???';const ingMuts=getIngredientMutations(ch.id);const ingMutHtml=ingMuts.length?ingMuts.map(m=>MUTATIONS[m]?`<div style="font-size:7px;font-weight:700;color:${MUTATIONS[m].color}">${MUTATIONS[m].name}</div>`:'').join(''):'';const ingMult=ingMuts.reduce((a,m)=>a*(MUTATIONS[m]?MUTATIONS[m].mult:1),1);const effRate=ch.rate*ingMult;const card=document.createElement('div');card.className='fusion-recipe';card.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><div style="position:relative;flex-shrink:0">${svgChar(ch.id)}<div style="position:absolute;bottom:0;right:0;background:var(--accent);color:#fff;font-size:8px;border-radius:6px;padding:0 3px">×3</div></div><div><div style="font-size:10px;font-weight:700">${ch.name}</div><div style="font-size:8px;color:var(--muted)">所持: ${count}体</div>${ingMuts.length?`<div style="margin-top:2px">${ingMutHtml}<div style="font-size:8px;color:var(--accent3)">${fmtRateSm(effRate)}/s</div></div>`:`<div style="font-size:8px;color:var(--muted)">${fmtRateSm(ch.rate)}/s</div>`}<div style="font-size:8px;margin-top:2px">→ <span class="r-${nextRarity}">${nextRarityLabel}</span>ランダム</div></div></div><button class="fusion-btn" style="margin-top:8px;width:100%" onclick="executeUpgradeFusion('${ch.id}')">⬆️ アップグレード融合</button>`;grid.appendChild(card);});upgradeDiv.appendChild(grid);renderMythicFusion();}
+div.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-size:11px;font-weight:700">✨ ${recipe.name}</div></div><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:8px">${ingsHtml}</div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div class="fusion-result"><div style="animation:float 3s ease-in-out infinite">${svgChar(resultChar.id)}</div><div class="fusion-result-info"><div class="frn r-${resultChar.rarity}">${resultChar.name}</div><div class="frr r-${resultChar.rarity}">${RARITIES[resultChar.rarity].label}</div><div class="frrate">${fmtRateSm(resultChar.rate)}</div></div></div><button class="fusion-btn" ${canFuse?'':'disabled'} onclick="executeFusion('${recipe.id}')">${canFuse?'⚗️ 融合！':'素材不足'}</button></div>${!canFuse?`<div class="fusion-missing">不足: ${missingParts.map(p=>{const c=CHARACTERS.find(x=>x.id===p.id);return c?c.name:'?';}).join(', ')}</div>`:''}`;recipesDiv.appendChild(div);});
+// スーパーミシック融合
+const superDiv=document.getElementById('upgrade-fusion');superDiv.innerHTML='';
+const superRecipes=FUSION_RECIPES.filter(r=>r.isSuper);
+if(superRecipes.length){
+  const superSection=document.createElement('div');
+  superSection.innerHTML=`<div style="background:linear-gradient(135deg,#1a0030,#000a1a);border:2px solid #ff8800;border-radius:12px;padding:12px;margin-bottom:12px"><div style="font-size:13px;font-weight:900;color:#ff8800;margin-bottom:6px;letter-spacing:1px">🔥 スーパーミシック召喚</div><div style="font-size:10px;color:#aaaaff;margin-bottom:10px">ミシックを組み合わせて超越した存在を召喚！</div><div id="super-recipe-list"></div></div>`;
+  superDiv.appendChild(superSection);
+  const srList=superSection.querySelector('#super-recipe-list');
+  superRecipes.forEach(recipe=>{
+    const resultChar=CHARACTERS.find(c=>c.id===recipe.result);
+    let canFuse=true;let missingParts=[];
+    recipe.ingredients.forEach(ing=>{const have=state.inventory[ing.id]||0;if(have<ing.count){canFuse=false;missingParts.push(ing);}});
+    const div=document.createElement('div');div.className='fusion-recipe';div.style.cssText='border-color:#ff8800;margin-bottom:8px;background:#0d0014;';
+    let ingsHtml=recipe.ingredients.map(ing=>{const ch=CHARACTERS.find(c=>c.id===ing.id);const have=state.inventory[ing.id]||0;const ok=have>=ing.count;return `<div class="fusion-ing" style="${ok?'border-color:#ff8800;background:#1a0a00':''}">${svgChar(ing.id)}<div class="fin" style="${ok?'color:#ff8800':''}">${ch?ch.name:'?'}</div><div class="fic">${have}/${ing.count}</div></div>`;}).join('<div style="font-size:14px;color:#ff8800;align-self:center">＋</div>');
+    div.innerHTML=`<div style="font-size:11px;font-weight:700;color:#ff8800;margin-bottom:8px">🔥 ${recipe.name}</div><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:8px">${ingsHtml}</div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div class="fusion-result" style="border-color:#ff8800;background:#1a0a00">${svgChar(resultChar.id)}<div class="fusion-result-info"><div class="frn r-supermythic">${resultChar.name}</div><div class="frr r-supermythic">${RARITIES[resultChar.rarity].label}</div><div class="frrate">${fmtRateSm(resultChar.rate)}</div></div></div><button class="fusion-btn" style="background:linear-gradient(135deg,#ff8800,#ff4400);" ${canFuse?'':'disabled'} onclick="executeFusion('${recipe.id}')">${canFuse?'🔥 召喚！':'素材不足'}</button></div>${!canFuse?`<div class="fusion-missing">不足: ${missingParts.map(p=>{const c=CHARACTERS.find(x=>x.id===p.id);return c?c.name:'?';}).join(', ')}</div>`:''}`;
+    srList.appendChild(div);
+  });
+} else {
+  // no super recipes
+  const upgradeable=[];Object.entries(state.inventory).forEach(([id,count])=>{if(count>=3){const ch=CHARACTERS.find(c=>c.id===id);if(ch&&ch.rarity!=='legendary'&&ch.rarity!=='mythic'&&ch.rarity!=='supermythic'&&ch.rarity!=='secret')upgradeable.push({ch,count});}});
+  if(!upgradeable.length){superDiv.innerHTML='<div style="color:var(--muted);font-size:11px;text-align:center;padding:10px">同じキャラを3体以上持つと融合可能！</div>';renderMythicFusion();renderSecretFusion();return;}
+}
+// アップグレード融合
+const upgradeable=[];Object.entries(state.inventory).forEach(([id,count])=>{if(count>=3){const ch=CHARACTERS.find(c=>c.id===id);if(ch&&ch.rarity!=='legendary'&&ch.rarity!=='mythic'&&ch.rarity!=='supermythic'&&ch.rarity!=='secret')upgradeable.push({ch,count});}});
+if(!upgradeable.length){const noUpg=document.createElement('div');noUpg.style.cssText='color:var(--muted);font-size:11px;text-align:center;padding:10px';noUpg.textContent='同じキャラを3体以上持つと融合可能！';superDiv.appendChild(noUpg);renderMythicFusion();renderSecretFusion();return;}
+const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(2,1fr);gap:8px;';upgradeable.forEach(({ch,count})=>{const nextRarity=RARITY_ORDER[RARITY_ORDER.indexOf(ch.rarity)+1];const nextRarityLabel=RARITIES[nextRarity]?.label||'???';const ingMuts=getIngredientMutations(ch.id);const ingMutHtml=ingMuts.length?ingMuts.map(m=>MUTATIONS[m]?`<div style="font-size:7px;font-weight:700;color:${MUTATIONS[m].color}">${MUTATIONS[m].name}</div>`:'').join(''):'';const ingMult=ingMuts.reduce((a,m)=>a*(MUTATIONS[m]?MUTATIONS[m].mult:1),1);const effRate=ch.rate*ingMult;const card=document.createElement('div');card.className='fusion-recipe';card.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><div style="position:relative;flex-shrink:0">${svgChar(ch.id)}<div style="position:absolute;bottom:0;right:0;background:var(--accent);color:#fff;font-size:8px;border-radius:6px;padding:0 3px">×3</div></div><div><div style="font-size:10px;font-weight:700">${ch.name}</div><div style="font-size:8px;color:var(--muted)">所持: ${count}体</div>${ingMuts.length?`<div style="margin-top:2px">${ingMutHtml}<div style="font-size:8px;color:var(--accent3)">${fmtRateSm(effRate)}/s</div></div>`:`<div style="font-size:8px;color:var(--muted)">${fmtRateSm(ch.rate)}/s</div>`}<div style="font-size:8px;margin-top:2px">→ <span class="r-${nextRarity}">${nextRarityLabel}</span>ランダム</div></div></div><button class="fusion-btn" style="margin-top:8px;width:100%" onclick="executeUpgradeFusion('${ch.id}')">⬆️ アップグレード融合</button>`;grid.appendChild(card);});superDiv.appendChild(grid);renderMythicFusion();renderSecretFusion();}
 function executeFusion(recipeId){const recipe=FUSION_RECIPES.find(r=>r.id===recipeId);if(!recipe)return;let canFuse=true;recipe.ingredients.forEach(ing=>{if((state.inventory[ing.id]||0)<ing.count)canFuse=false;});if(!canFuse){showToast('素材が足りない！');return;}
 const ingredientMuts=[];recipe.ingredients.forEach(ing=>{const baseMuts=getIngredientMutations(ing.id);baseMuts.forEach(m=>{if(!ingredientMuts.includes(m))ingredientMuts.push(m);});});
 recipe.ingredients.forEach(ing=>{for(let i=0;i<ing.count;i++)removeFromInventory(ing.id);});addToInventory(recipe.result);state.discovered.add(recipe.result);state.stats.totalFusions=(state.stats.totalFusions||0)+1;const resultChar=CHARACTERS.find(c=>c.id===recipe.result);
+const isSuper=recipe.isSuper;
 const finalMuts=[];ingredientMuts.forEach(m=>{if(Math.random()<0.40)finalMuts.push(m);});const baseMut=rollMutation(0.25);if(baseMut&&!finalMuts.includes(baseMut))finalMuts.push(baseMut);
-let mutLabel='';if(finalMuts.length){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[recipe.result]||0)>0){removeFromInventory(recipe.result);state.base.push({charId:recipe.result,slot:freeSlot});finalMuts.forEach(m=>addMutation(recipe.result,freeSlot,m));state.discoveredMutations=state.discoveredMutations||new Set();finalMuts.forEach(m=>state.discoveredMutations.add(m));const mult=finalMuts.reduce((a,m)=>a*(MUTATIONS[m]?MUTATIONS[m].mult:1),1);const effRate=resultChar.rate*mult;mutLabel=`<div style="background:#1a1a00;border:1px solid #aa44ff;border-radius:8px;padding:8px;width:100%;text-align:center;">${finalMuts.map(m=>`<div style="font-size:11px;font-weight:900;color:${MUTATIONS[m].color}">${MUTATIONS[m].name} が発現！</div>`).join('')}<div style="font-size:13px;color:var(--accent3);font-weight:700;margin-top:4px">変異込み稼ぎ: ${fmtRateSm(effRate)}</div><div style="font-size:9px;color:var(--muted)">(基本 ${fmtRateSm(resultChar.rate)} × ${mult.toFixed(1)}倍)</div></div>`;renderBase();}}renderFusion();renderInventory();calcRate();openModal(`<div class="modal-header"><h3>🌟 ミシック召喚成功！</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><div style="animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 20px #ff3366)">${svgChar(resultChar.id)}</div><div class="mb-name r-mythic" style="font-size:20px">${resultChar.name}</div><div class="mb-rarity r-mythic">✨ MYTHIC ✨</div>${mutLabel}<div class="mb-rate">${fmtRateSm(resultChar.rate)}</div><div class="mb-desc">${resultChar.desc}</div><button class="mact-btn mact-primary" style="width:100%;margin-top:8px" onclick="closeModal()">🎉 すごい！</button></div>`);checkAchievements();saveGame();}
+let mutLabel='';if(finalMuts.length){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[recipe.result]||0)>0){removeFromInventory(recipe.result);state.base.push({charId:recipe.result,slot:freeSlot});finalMuts.forEach(m=>addMutation(recipe.result,freeSlot,m));state.discoveredMutations=state.discoveredMutations||new Set();finalMuts.forEach(m=>state.discoveredMutations.add(m));const mult=finalMuts.reduce((a,m)=>a*(MUTATIONS[m]?MUTATIONS[m].mult:1),1);const effRate=resultChar.rate*mult;mutLabel=`<div style="background:#1a1a00;border:1px solid #aa44ff;border-radius:8px;padding:8px;width:100%;text-align:center;">${finalMuts.map(m=>`<div style="font-size:11px;font-weight:900;color:${MUTATIONS[m].color}">${MUTATIONS[m].name} が発現！</div>`).join('')}<div style="font-size:13px;color:var(--accent3);font-weight:700;margin-top:4px">変異込み稼ぎ: ${fmtRateSm(effRate)}</div><div style="font-size:9px;color:var(--muted)">(基本 ${fmtRateSm(resultChar.rate)} × ${mult.toFixed(1)}倍)</div></div>`;renderBase();}}renderFusion();renderInventory();calcRate();
+if(isSuper){
+  openModal(`<div class="modal-header" style="background:linear-gradient(135deg,#1a0800,#0a0000);border-bottom:1px solid #ff8800"><h3 style="color:#ff8800">🔥 スーパーミシック覚醒！</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body" style="background:linear-gradient(135deg,#1a0800,#0a0000)"><div style="animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 20px #ff8800) drop-shadow(0 0 40px #ff4400)">${svgChar(resultChar.id)}</div><div class="mb-name r-supermythic" style="font-size:20px">${resultChar.name}</div><div class="mb-rarity r-supermythic">🔥 SUPER MYTHIC 🔥</div>${mutLabel}<div class="mb-rate">${fmtMoney(resultChar.rate)}/s</div><div class="mb-desc">${resultChar.desc}</div><button class="mact-btn mact-primary" style="width:100%;margin-top:8px;background:linear-gradient(135deg,#ff8800,#ff4400);color:#000" onclick="closeModal()">🔥 覚醒した！</button></div>`);
+} else {
+  openModal(`<div class="modal-header"><h3>🌟 ミシック召喚成功！</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><div style="animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 20px #ff3366)">${svgChar(resultChar.id)}</div><div class="mb-name r-mythic" style="font-size:20px">${resultChar.name}</div><div class="mb-rarity r-mythic">✨ MYTHIC ✨</div>${mutLabel}<div class="mb-rate">${fmtRateSm(resultChar.rate)}</div><div class="mb-desc">${resultChar.desc}</div><button class="mact-btn mact-primary" style="width:100%;margin-top:8px" onclick="closeModal()">🎉 すごい！</button></div>`);
+}
+checkAchievements();saveGame();}
 function executeUpgradeFusion(charId){const ch=CHARACTERS.find(c=>c.id===charId);if(!ch||(state.inventory[charId]||0)<3){showToast('3体必要！');return;}const nextRarity=RARITY_ORDER[RARITY_ORDER.indexOf(ch.rarity)+1];const nextPool=CHARACTERS.filter(c=>c.rarity===nextRarity);if(!nextPool.length){showToast('次のレアリティがない！');return;}const result=nextPool[Math.floor(Math.random()*nextPool.length)];for(let i=0;i<3;i++)removeFromInventory(charId);addToInventory(result.id);state.stats.totalFusions=(state.stats.totalFusions||0)+1;
 const upgMut=rollMutation(0.20);
 if(upgMut){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[result.id]||0)>0){removeFromInventory(result.id);state.base.push({charId:result.id,slot:freeSlot});addMutation(result.id,freeSlot,upgMut);state.discoveredMutations=state.discoveredMutations||new Set();state.discoveredMutations.add(upgMut);renderBase();showToast(`⬆️ ${ch.name}×3 → ${result.name}！ 🧬${MUTATIONS[upgMut].name}発現！`);renderFusion();renderInventory();calcRate();checkAchievements();saveGame();return;}}
 renderFusion();renderInventory();calcRate();showToast(`⬆️ ${ch.name}×3 → ${result.name}！`);checkAchievements();saveGame();}
+// ===== シークレット融合 =====
+function renderSecretFusion(){
+  const div=document.getElementById('secret-fusion');if(!div)return;div.innerHTML='';
+  const secretChar=CHARACTERS.find(c=>c.id==='omnisecret');
+  // 必要: スーパーミシック1体以上、ミシック1体以上
+  const superMythics=['voidgod','abyssking'];
+  const mythics=['cosmicbrain','omegaboss'];
+  const hasSuperMythic=superMythics.some(id=>(state.inventory[id]||0)>0);
+  const hasMythic=mythics.some(id=>(state.inventory[id]||0)>0);
+  const canFuse=hasSuperMythic&&hasMythic;
+  // 実際に使う素材アイテムのinvItems上の変異だけを収集（基地の変異は参照しない）
+  let previewSuper=null,previewMythic=null;
+  for(const id of superMythics){if((state.inventory[id]||0)>0){previewSuper=id;break;}}
+  for(const id of mythics){if((state.inventory[id]||0)>0){previewMythic=id;break;}}
+  const allIngMuts=[];
+  [previewSuper,previewMythic].filter(Boolean).forEach(id=>{
+    const it=state.invItems.find(x=>x.charId===id&&x.muts.length===0)
+           || state.invItems.find(x=>x.charId===id);
+    if(it&&it.muts){
+      it.muts.forEach(m=>{if(!allIngMuts.includes(m))allIngMuts.push(m);});
+    }
+  });
+  const mutPreviewHtml=allIngMuts.length?allIngMuts.map(m=>MUTATIONS[m]?`<span style="font-size:9px;font-weight:900;color:${MUTATIONS[m].color};margin:2px 4px;display:inline-block">${MUTATIONS[m].name}</span>`:'').join(''):'<span style="font-size:9px;color:var(--muted)">（変異なし）</span>';
+  const ingSlots=['voidgod','abyssking'].map(id=>{
+    const ch=CHARACTERS.find(c=>c.id===id);
+    const have=state.inventory[id]||0;
+    const ok=have>0;
+    return `<div class="fusion-ing" style="${ok?'border-color:#00ffff;background:#001a2a':''}"><div style="width:32px;height:32px">${svgChar(id)}</div><div class="fin" style="${ok?'color:#00ffff':''}">${ch?ch.name:'?'}</div><div class="fic">${have}/1</div></div>`;
+  }).join('<div style="font-size:14px;color:#00ffff;align-self:center">or</div>');
+  const mythicSlots=mythics.map(id=>{
+    const ch=CHARACTERS.find(c=>c.id===id);
+    const have=state.inventory[id]||0;
+    const ok=have>0;
+    return `<div class="fusion-ing" style="${ok?'border-color:#ff3366;background:#1a001a':''}"><div style="width:32px;height:32px">${svgChar(id)}</div><div class="fin" style="${ok?'color:#ff3366':''}">${ch?ch.name:'?'}</div><div class="fic">${have}/1</div></div>`;
+  }).join('<div style="font-size:14px;color:#ff3366;align-self:center">or</div>');
+  div.innerHTML=`<div class="fusion-recipe" style="border-color:#00ffff;background:linear-gradient(135deg,#000814,#0a001a);">
+    <div style="font-size:10px;color:#aaaaff;margin-bottom:8px">スーパーミシック×1 ＋ ミシック×1 → 最強の存在</div>
+    <div style="font-size:9px;color:#ff88ff;margin-bottom:6px">🧬 継承される変異: ${mutPreviewHtml}</div>
+    <div style="margin-bottom:8px"><div style="font-size:9px;color:var(--muted);margin-bottom:4px">📌 スーパーミシック（どれか1体）</div><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">${ingSlots}</div></div>
+    <div style="margin-bottom:8px"><div style="font-size:9px;color:var(--muted);margin-bottom:4px">📌 ミシック（どれか1体）</div><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">${mythicSlots}</div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div class="fusion-result" style="border-color:#00ffff;background:linear-gradient(135deg,#001a2a,#1a002a)">
+        <div style="animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 10px #00ffff)">${svgChar('omnisecret')}</div>
+        <div class="fusion-result-info">
+          <div class="frn r-secret">${secretChar.name}</div>
+          <div style="font-size:8px;background:linear-gradient(90deg,#00ffff,#ff00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:900">⭐SECRET⭐</div>
+          <div class="frrate">${fmtMoney(secretChar.rate)}/s</div>
+        </div>
+      </div>
+      <button class="fusion-btn" style="background:linear-gradient(135deg,#00ffff,#ff00ff);color:#000;font-size:12px;" ${canFuse?'':'disabled'} onclick="executeSecretFusion()">
+        ${canFuse?'💎 シークレット召喚！':'素材不足'}
+      </button>
+    </div>
+    ${!canFuse?'<div class="fusion-missing">スーパーミシック×1とミシック×1が必要</div>':''}
+  </div>`;
+}
+function executeSecretFusion(){
+  const superMythics=['voidgod','abyssking'];
+  const mythics=['cosmicbrain','omegaboss'];
+  // 使う素材を先に選択
+  let usedSuper=null,usedMythic=null;
+  for(const id of superMythics){if((state.inventory[id]||0)>0){usedSuper=id;break;}}
+  for(const id of mythics){if((state.inventory[id]||0)>0){usedMythic=id;break;}}
+  if(!usedSuper||!usedMythic){showToast('素材が足りない！');return;}
+  // 実際に消費するインベントリアイテムの変異だけ収集（基地の変異は参照しない）
+  const allIngMuts=[];
+  [usedSuper,usedMythic].forEach(id=>{
+    // invItemsから変異なし優先で1体分のmutsを取得
+    const it=state.invItems.find(x=>x.charId===id&&x.muts.length===0)
+           || state.invItems.find(x=>x.charId===id);
+    if(it&&it.muts){
+      it.muts.forEach(m=>{if(!allIngMuts.includes(m))allIngMuts.push(m);});
+    }
+  });
+  removeFromInventory(usedSuper);
+  removeFromInventory(usedMythic);
+  state.stats.totalFusions=(state.stats.totalFusions||0)+1;
+  const secretChar=CHARACTERS.find(c=>c.id==='omnisecret');
+  // 変異は素材の変異を全て確実に引き継ぎ（重複なし）
+  const finalMuts=[...allIngMuts]; // 重複なし保証済み
+  if(finalMuts.length){
+    const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));
+    if(freeSlot!==undefined){
+      state.base.push({charId:'omnisecret',slot:freeSlot});
+      finalMuts.forEach(m=>{addMutation('omnisecret',freeSlot,m);});
+      state.discoveredMutations=state.discoveredMutations||new Set();
+      finalMuts.forEach(m=>state.discoveredMutations.add(m));
+      state.discovered.add('omnisecret');syncInventoryHash();
+      const mult=finalMuts.reduce((a,m)=>a*(MUTATIONS[m]?MUTATIONS[m].mult:1),1);
+      const effRate=secretChar.rate*mult;
+      renderBase();renderFusion();renderInventory();calcRate();
+      openModal(`<div class="modal-header" style="background:linear-gradient(135deg,#000814,#0a001a);border-bottom:1px solid #00ffff"><h3 style="background:linear-gradient(90deg,#00ffff,#ff00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">💎 シークレット降臨！</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+<div class="modal-body" style="background:linear-gradient(135deg,#000814,#0a001a)">
+<div style="animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 30px #00ffff) drop-shadow(0 0 60px #ff00ff)">${svgChar('omnisecret')}</div>
+<div class="mb-name r-secret" style="font-size:20px">${secretChar.name}</div>
+<div style="font-size:13px;background:linear-gradient(90deg,#00ffff,#ff00ff,#ffff00,#00ffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:900;letter-spacing:2px">✨ ⭐ S E C R E T ⭐ ✨</div>
+<div style="background:linear-gradient(135deg,#001a2a,#1a002a);border:2px solid #00ffff;border-radius:10px;padding:10px;text-align:center;width:100%;box-shadow:0 0 20px #00ffff">
+  <div style="font-size:11px;color:#aaaaff;margin-bottom:6px">🧬 引き継がれた変異</div>
+  ${finalMuts.map(m=>`<div style="font-size:12px;font-weight:900;color:${MUTATIONS[m].color};text-shadow:0 0 8px ${MUTATIONS[m].color}">${MUTATIONS[m].name}</div>`).join('')}
+  <div style="font-size:14px;color:#ffff00;font-weight:700;margin-top:6px">変異込み収益: ${fmtRateSm(effRate)}</div>
+  <div style="font-size:9px;color:#aaaaff">(基本 ${fmtRateSm(secretChar.rate)} × ${mult.toFixed(1)}倍)</div>
+</div>
+<div class="mb-desc">${secretChar.desc}</div>
+<button class="mact-btn mact-primary" style="width:100%;margin-top:8px;background:linear-gradient(135deg,#00ffff,#ff00ff);color:#000" onclick="closeModal()">💎 最強を超えた！</button>
+</div>`);
+      checkAchievements();saveGame();return;
+    }
+  }
+  // 変異なし（素材に変異がなかった場合）
+  addToInventory('omnisecret');
+  renderFusion();renderInventory();calcRate();
+  const secretName=secretChar.name;
+  openModal(`<div class="modal-header" style="background:linear-gradient(135deg,#000814,#0a001a);border-bottom:1px solid #00ffff"><h3 style="background:linear-gradient(90deg,#00ffff,#ff00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">💎 シークレット降臨！</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+<div class="modal-body" style="background:linear-gradient(135deg,#000814,#0a001a)">
+<div style="animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 20px #00ffff)">${svgChar('omnisecret')}</div>
+<div class="mb-name r-secret">${secretName}</div>
+<div style="font-size:13px;background:linear-gradient(90deg,#00ffff,#ff00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:900">⭐ SECRET ⭐</div>
+<div class="mb-rate">${fmtRateSm(secretChar.rate)}</div>
+<div class="mb-desc">${secretChar.desc}</div>
+<div style="font-size:10px;color:#aaaaff">※ 素材に変異がなかったため変異なしで降臨</div>
+<button class="mact-btn mact-primary" style="width:100%;margin-top:8px;background:linear-gradient(135deg,#00ffff,#ff00ff);color:#000" onclick="closeModal()">💎 最強！</button>
+</div>`);
+  checkAchievements();saveGame();
+}
 // ===== ミシック3体融合 =====
 function renderMythicFusion(){
   const div=document.getElementById('mythic-fusion');if(!div)return;div.innerHTML='';
@@ -770,6 +997,8 @@ function executeMythicFusion(charId){
   showToast(`👑 ${ch.name}×3 究極融合 → 変異なし…`);
   checkAchievements();saveGame();
 }
+// renderFusion内でrenderSecretFusionは呼ばれるが、mythicFusion単独呼び出し後も呼ぶ
+function _renderSecretFusionIfNeeded(){renderSecretFusion();}
 function initQuests(){state.quests={};DAILY_QUESTS_DEF.forEach(q=>{state.quests[q.id]={progress:0,claimed:false};});}
 function checkQuestProgress(){if(!state.quests||Object.keys(state.quests).length===0)initQuests();let changed=false;DAILY_QUESTS_DEF.forEach(q=>{if(state.quests[q.id]?.claimed)return;let prog=state.quests[q.id]?.progress||0;let newProg=prog;if(q.type==='buy')newProg=Math.min(q.target,state.stats.totalBuys||0);if(q.type==='trade')newProg=Math.min(q.target,state.stats.totalTrades||0);if(q.type==='earn')newProg=Math.min(q.target,state.stats.totalEarned||0);if(q.type==='discover')newProg=Math.min(q.target,state.stats.sessionDiscovers||0);if(q.type==='base')newProg=Math.min(q.target,state.base.length||0);if(q.type==='fusion')newProg=Math.min(q.target,state.stats.totalFusions||0);if(newProg!==prog){state.quests[q.id].progress=newProg;changed=true;}});if(changed)renderQuests();updateQuestBadge();}
 function updateQuestBadge(){const claimable=DAILY_QUESTS_DEF.filter(q=>{const qs=state.quests[q.id];return qs&&!qs.claimed&&qs.progress>=q.target;}).length;const btn=document.getElementById('nav-quest');let badge=btn.querySelector('.quest-badge');if(claimable>0){if(!badge){badge=document.createElement('div');badge.className='quest-badge';btn.appendChild(badge);}badge.textContent=claimable;}else if(badge)badge.remove();}
@@ -777,7 +1006,7 @@ function claimQuest(questId){const q=DAILY_QUESTS_DEF.find(x=>x.id===questId);if
 function renderQuests(){if(!state.quests||Object.keys(state.quests).length===0)initQuests();const div=document.getElementById('daily-quests');div.innerHTML='';DAILY_QUESTS_DEF.forEach(q=>{const qs=state.quests[q.id]||{progress:0,claimed:false};const prog=Math.min(qs.progress,q.target);const pct=Math.round(prog/q.target*100);const done=qs.claimed;const canClaim=!done&&prog>=q.target;const item=document.createElement('div');item.className='quest-item'+(done?' done':'');item.innerHTML=`<div class="quest-icon">${q.icon}</div><div class="quest-info"><div class="quest-name">${q.name}${done?' ✅':''}</div><div class="quest-desc">${q.desc}</div><div class="quest-progress"><div class="quest-bar" style="width:${pct}%"></div></div><div style="font-size:8px;color:var(--muted);margin-top:2px">${q.type==='earn'?fmtMoney(prog)+'/'+fmtMoney(q.target):prog+'/'+q.target}</div></div><div class="quest-reward">${fmtMoney(q.reward)}</div>${canClaim?`<button class="claim-btn" onclick="claimQuest('${q.id}')">受取</button>`:''}`;div.appendChild(item);});renderAchievements();}
 function checkAchievements(){let gained=false;ACHIEVEMENTS_DEF.forEach(a=>{if(!state.achievements.has(a.id)&&a.condition(state)){state.achievements.add(a.id);gained=true;showToast(`🏆 実績解除: ${a.name}`);}});if(gained){renderAchievements();saveGame();}}
 function renderAchievements(){const grid=document.getElementById('achievements');if(!grid)return;grid.innerHTML='';ACHIEVEMENTS_DEF.forEach(a=>{const unlocked=state.achievements.has(a.id);const card=document.createElement('div');card.className='ach-card'+(unlocked?' unlocked':' locked-ach');card.innerHTML=`<div class="ach-icon">${unlocked?a.icon:'🔒'}</div><div class="ach-info"><div class="an">${a.name}</div><div class="ad">${a.desc}</div></div>`;grid.appendChild(card);});}
-function renderIndex(){const total=CHARACTERS.length,found=state.discovered.size;const byR={legendary:0,mythic:0};state.discovered.forEach(id=>{const c=CHARACTERS.find(x=>x.id===id);if(c&&byR[c.rarity]!==undefined)byR[c.rarity]++;});if(!state.discoveredMutations)state.discoveredMutations=new Set();const mutFound=state.discoveredMutations.size;const mutTotal=Object.keys(MUTATIONS).length;document.getElementById('index-stats').innerHTML=`<div class="stat-box"><div class="sv">${found}/${total}</div><div class="sk">図鑑達成</div></div><div class="stat-box"><div class="sv r-legendary">${byR.legendary}</div><div class="sk">レジェンダリー</div></div><div class="stat-box"><div class="sv r-mythic">${byR.mythic}</div><div class="sk">ミシック</div></div><div class="stat-box" style="grid-column:span 3"><div class="sv" style="color:#aa44ff">${mutFound}/${mutTotal}</div><div class="sk">🧬 変異発見数</div></div>`;const order=['common','uncommon','rare','epic','legendary','mythic'];const sorted=[...CHARACTERS].sort((a,b)=>order.indexOf(a.rarity)-order.indexOf(b.rarity));const grid=document.getElementById('index-grid');grid.innerHTML='';sorted.forEach(ch=>{const isFound=state.discovered.has(ch.id);const card=document.createElement('div');card.className=`index-card border-${ch.rarity}${isFound?'':' locked'}`;const mythicHint=ch.rarity==='mythic'&&!isFound?'<div style="font-size:7px;color:var(--accent);margin-top:2px">⚗️融合で入手</div>':'';card.innerHTML=`${isFound?'':'<div class="lock-icon">🔒</div>'}${svgChar(isFound?ch.id:'none')}<div class="idn">${isFound?ch.name:'???'}</div><div class="idr r-${ch.rarity}">${RARITIES[ch.rarity].label}</div>${isFound?`<div class="idrate">${fmtRateSm(ch.rate)}</div>`:mythicHint}`;if(isFound)card.onclick=()=>openCharDetail(ch);grid.appendChild(card);});
+function renderIndex(){const total=CHARACTERS.length,found=state.discovered.size;const byR={legendary:0,mythic:0,supermythic:0,secret:0};state.discovered.forEach(id=>{const c=CHARACTERS.find(x=>x.id===id);if(c&&byR[c.rarity]!==undefined)byR[c.rarity]++;});if(!state.discoveredMutations)state.discoveredMutations=new Set();const mutFound=state.discoveredMutations.size;const mutTotal=Object.keys(MUTATIONS).length;document.getElementById('index-stats').innerHTML=`<div class="stat-box"><div class="sv">${found}/${total}</div><div class="sk">図鑑達成</div></div><div class="stat-box"><div class="sv r-legendary">${byR.legendary}</div><div class="sk">レジェンダリー</div></div><div class="stat-box"><div class="sv r-mythic">${byR.mythic}</div><div class="sk">ミシック</div></div><div class="stat-box"><div class="sv r-supermythic">${byR.supermythic}</div><div class="sk">スーパーミシック</div></div><div class="stat-box"><div class="sv" style="color:#00ffff">${byR.secret}</div><div class="sk">⭐シークレット</div></div><div class="stat-box"><div class="sv" style="color:#aa44ff">${mutFound}/${mutTotal}</div><div class="sk">🧬 変異発見</div></div>`;const order=['common','uncommon','rare','epic','legendary','mythic','supermythic','secret'];const sorted=[...CHARACTERS].sort((a,b)=>order.indexOf(a.rarity)-order.indexOf(b.rarity));const grid=document.getElementById('index-grid');grid.innerHTML='';sorted.forEach(ch=>{const isFound=state.discovered.has(ch.id);const card=document.createElement('div');card.className=`index-card border-${ch.rarity}${isFound?'':' locked'}`;const specialHint=(ch.rarity==='mythic'||ch.rarity==='supermythic')&&!isFound?`<div style="font-size:7px;color:var(--accent);margin-top:2px">⚗️融合で入手</div>`:(ch.rarity==='secret'&&!isFound?`<div style="font-size:7px;color:#00ffff;margin-top:2px">💎シークレット融合</div>`:'');card.innerHTML=`${isFound?'':'<div class="lock-icon">🔒</div>'}${svgChar(isFound?ch.id:'none')}<div class="idn">${isFound?ch.name:'???'}</div><div class="idr r-${ch.rarity}">${RARITIES[ch.rarity]?.label||'???'}</div>${isFound?`<div class="idrate">${fmtRateSm(ch.rate)}</div>`:specialHint}`;if(isFound)card.onclick=()=>openCharDetail(ch);grid.appendChild(card);});
 // 変異図鑑
 if(!state.discoveredMutations)state.discoveredMutations=new Set();
 const mutGrid=document.getElementById('mutation-index-grid');mutGrid.innerHTML='';
@@ -944,6 +1173,7 @@ function openAdminPanel(){
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
           <button class="adm-btn" onclick="adminGiveAll('legendary')">全レジェ付与</button>
           <button class="adm-btn adm-gold" onclick="adminGiveAll('mythic')">全ミシック付与</button>
+          <button class="adm-btn" style="border-color:#ff8800;color:#ff8800" onclick="adminGiveAll('supermythic')">全スーパーミシック</button>
           <button class="adm-btn" onclick="adminGiveAll('epic')">全エピック付与</button>
           <button class="adm-btn" onclick="adminGiveRandom(10)">ランダム10体</button>
         </div>
