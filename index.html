@@ -530,7 +530,7 @@ let state={money:500000,rate:0,baseSlots:8,base:[],inventory:{},invItems:[],shop
 const SAVE_KEY='brainrot_v3';
 let _uidCounter=1;
 function genUid(){return 'u'+(Date.now()%1e9)+'_'+(++_uidCounter);}
-function saveGame(){try{const d={...state,invItems:state.invItems||[],discovered:[...state.discovered],achievements:[...state.achievements],mutations:state.mutations||{},discoveredMutations:[...(state.discoveredMutations||new Set())],shopUpgradeLevel:state.shopUpgradeLevel||0,usedCodes:state.usedCodes||{},admin2Bought:state.admin2Bought||false,admin2PendingFusionMut:state.admin2PendingFusionMut||null};localStorage.setItem(SAVE_KEY,JSON.stringify(d));const el=document.getElementById('save-indicator');if(el){el.textContent='💾 セーブ済';el.style.color='var(--accent2)';}}catch(e){}}
+function saveGame(){try{const d={...state,invItems:state.invItems||[],discovered:[...state.discovered],achievements:[...state.achievements],mutations:state.mutations||{},discoveredMutations:[...(state.discoveredMutations||new Set())],shopUpgradeLevel:state.shopUpgradeLevel||0,usedCodes:state.usedCodes||{},admin2Bought:state.admin2Bought||false,admin2PendingFusionMut:state.admin2PendingFusionMut||null,admin2CD:{spawn:admin2CD.spawn,shop:admin2CD.shop,mut:admin2CD.mut},admin2CDSavedAt:Date.now()};localStorage.setItem(SAVE_KEY,JSON.stringify(d));const el=document.getElementById('save-indicator');if(el){el.textContent='💾 セーブ済';el.style.color='var(--accent2)';}}catch(e){}}
 function loadGame(){try{
   // v3
   let raw=localStorage.getItem('brainrot_v3');
@@ -545,6 +545,7 @@ function loadGame(){try{
     state.usedCodes=d.usedCodes||{};
     state.admin2Bought=d.admin2Bought||false;
     state.admin2PendingFusionMut=d.admin2PendingFusionMut||null;
+    if(d.admin2CD){const elapsed=d.admin2CDSavedAt?Math.floor((Date.now()-d.admin2CDSavedAt)/1000):0;admin2CD.spawn=Math.max(0,(d.admin2CD.spawn||0)-elapsed);admin2CD.shop=Math.max(0,(d.admin2CD.shop||0)-elapsed);admin2CD.mut=Math.max(0,(d.admin2CD.mut||0)-elapsed);}
     // inventory互換（旧フォーマット併用）
     state.inventory={};state.invItems.forEach(it=>{state.inventory[it.charId]=(state.inventory[it.charId]||0)+1;});
     return true;
@@ -741,7 +742,15 @@ function renderAdmin2CDs() {
 // ===== コード =====
 const PROMO_CODES = {
   give1: { action: (s) => { addToInventoryWithMuts('omnisecret', ['rainbow']); s.money += 1e12; return '🌈 オムニシークレット・Ω（虹色変異付き）＆$1T を受け取った！'; } },
-  update_11: { action: (s) => { addToInventoryWithMuts('omnisecret', ['blaze']); s.money += 1e12; return '🔥 オムニシークレット・Ω（炎熱変異付き）＆$1T を受け取った！'; } }
+  update_11: { action: (s) => { addToInventoryWithMuts('omnisecret', ['blaze']); s.money += 1e12; return '🔥 オムニシークレット・Ω（炎熱変異付き）＆$1T を受け取った！'; } },
+  wgame: {
+    check: (s) => {
+      const discovered = s.discovered ? s.discovered.size || [...s.discovered].length : 0;
+      if(discovered < 40) return '⛔ 図鑑を40体以上埋めないと使えない！（現在' + discovered + '体）';
+      return null;
+    },
+    action: (s) => { addToInventoryWithMuts('omnisecret', ['blaze']); s.money += 1.5e12; return '🔥 オムニシークレット・Ω（炎熱変異付き）＆$1.5T を受け取った！'; }
+  }
 };
 function redeemCode(){
   const inp = document.getElementById("code-input");
@@ -752,6 +761,7 @@ function redeemCode(){
   if(state.usedCodes[code]){ msg.style.color="#ff6666"; msg.textContent="⛔ このコードはすでに使用済みです"; return; }
   const entry = PROMO_CODES[code];
   if(!entry){ msg.style.color="#ff6666"; msg.textContent="❌ 無効なコードです"; return; }
+  if(entry.check){ const err=entry.check(state); if(err){ msg.style.color="#ff6666"; msg.textContent=err; return; } }
   state.usedCodes[code] = true;
   const result = entry.action(state);
   inp.value = "";
