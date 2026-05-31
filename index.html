@@ -206,6 +206,16 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
     <div id="mut-lab-preview" style="min-height:28px;font-size:10px;color:var(--muted);text-align:center;margin-bottom:8px"></div>
     <button id="mut-lab-btn" onclick="executeMutLab()" style="background:linear-gradient(135deg,#aa44ff,#ff3366);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:900;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;width:100%;opacity:.5" disabled>🧬 $10T で変異付与</button>
   </div>
+  <!-- コード入力 -->
+  <div style="background:linear-gradient(135deg,#0a0010,#001510);border:2px solid rgba(255,215,0,0.25);border-radius:14px;padding:12px;margin-top:4px">
+    <div style="font-size:13px;font-weight:900;color:#ffd700;margin-bottom:4px;letter-spacing:1px">🔑 コード</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:10px">シークレットコードを入力して特典を受け取ろう</div>
+    <div style="display:flex;gap:8px">
+      <input id="code-input" type="text" placeholder="コードを入力..." maxlength="20" style="flex:1;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,215,0,0.2);border-radius:10px;padding:9px 12px;color:#fff;font-size:13px;font-family:'M PLUS Rounded 1c',sans-serif;outline:none" onkeydown="if(event.key==='Enter')redeemCode()">
+      <button onclick="redeemCode()" style="background:linear-gradient(135deg,#b8860b,#ffd700);color:#000;border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:900;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;white-space:nowrap">受け取る</button>
+    </div>
+    <div id="code-msg" style="min-height:18px;font-size:10px;margin-top:8px;text-align:center"></div>
+  </div>
 </div>
 <div class="page" id="page-inventory">
   <div class="money-bar">
@@ -468,7 +478,7 @@ let state={money:500000,rate:0,baseSlots:8,base:[],inventory:{},invItems:[],shop
 const SAVE_KEY='brainrot_v3';
 let _uidCounter=1;
 function genUid(){return 'u'+(Date.now()%1e9)+'_'+(++_uidCounter);}
-function saveGame(){try{const d={...state,invItems:state.invItems||[],discovered:[...state.discovered],achievements:[...state.achievements],mutations:state.mutations||{},discoveredMutations:[...(state.discoveredMutations||new Set())],shopUpgradeLevel:state.shopUpgradeLevel||0};localStorage.setItem(SAVE_KEY,JSON.stringify(d));const el=document.getElementById('save-indicator');if(el){el.textContent='💾 セーブ済';el.style.color='var(--accent2)';}}catch(e){}}
+function saveGame(){try{const d={...state,invItems:state.invItems||[],discovered:[...state.discovered],achievements:[...state.achievements],mutations:state.mutations||{},discoveredMutations:[...(state.discoveredMutations||new Set())],shopUpgradeLevel:state.shopUpgradeLevel||0,usedCodes:state.usedCodes||{}};localStorage.setItem(SAVE_KEY,JSON.stringify(d));const el=document.getElementById('save-indicator');if(el){el.textContent='💾 セーブ済';el.style.color='var(--accent2)';}}catch(e){}}
 function loadGame(){try{
   // v3
   let raw=localStorage.getItem('brainrot_v3');
@@ -480,6 +490,7 @@ function loadGame(){try{
     state.stats=d.stats||{totalBuys:0,totalTrades:0,totalEarned:0,totalFusions:0,sessionDiscovers:0};
     state.mutations=d.mutations||{};state.discoveredMutations=new Set(d.discoveredMutations||[]);
     state.shopUpgradeLevel=d.shopUpgradeLevel||0;
+    state.usedCodes=d.usedCodes||{};
     // inventory互換（旧フォーマット併用）
     state.inventory={};state.invItems.forEach(it=>{state.inventory[it.charId]=(state.inventory[it.charId]||0)+1;});
     return true;
@@ -516,6 +527,26 @@ function fmtRate(v){return v>=1e18?`$${(v/1e18).toFixed(2)}Qi/s`:v>=1e15?`$${(v/
 function fmtRateSm(v){return v>=1e18?`$${(v/1e18).toFixed(2)}Qi/s`:v>=1e15?`$${(v/1e15).toFixed(2)}Qa/s`:v>=1e12?`$${(v/1e12).toFixed(2)}T/s`:v>=1e9?`$${(v/1e9).toFixed(2)}B/s`:v>=1e6?`$${(v/1e6).toFixed(2)}M/s`:v>=1e3?`$${(v/1e3).toFixed(1)}K/s`:`$${v}/s`;}
 function updateMoneyDisplays(){['money-display','money-display2','money-display3','money-display4','money-display5','money-display6'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=fmtMoney(state.money);});['rate-display','rate-display2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=fmtRate(state.rate);});}
 function calcRate(){state.rate=state.base.reduce((s,b)=>{const c=CHARACTERS.find(x=>x.id===b.charId);if(!c)return s;const muts=getMutations(b.charId,b.slot);const mult=muts.reduce((m,mut)=>m*(mut?mut.mult:1.0),1.0);return s+c.rate*mult;},0);updateMoneyDisplays();}
+// ===== コード =====
+const PROMO_CODES = {
+  give1: { action: (s) => { addToInventoryWithMuts('omnisecret', ['rainbow']); s.money += 1e12; return '🌈 オムニシークレット・Ω（虹色変異付き）＆$1T を受け取った！'; } }
+};
+function redeemCode(){
+  const inp = document.getElementById("code-input");
+  const msg = document.getElementById("code-msg");
+  const code = inp.value.trim().toLowerCase();
+  if(!code){ msg.style.color="#aaa"; msg.textContent="コードを入力してください"; return; }
+  if(!state.usedCodes) state.usedCodes = {};
+  if(state.usedCodes[code]){ msg.style.color="#ff6666"; msg.textContent="⛔ このコードはすでに使用済みです"; return; }
+  const entry = PROMO_CODES[code];
+  if(!entry){ msg.style.color="#ff6666"; msg.textContent="❌ 無効なコードです"; return; }
+  state.usedCodes[code] = true;
+  const result = entry.action(state);
+  inp.value = "";
+  msg.style.color="#ffd700"; msg.textContent="✅ " + result;
+  updateMoneyDisplays(); calcRate(); renderInventory(); renderMutLab();
+  saveGame();
+}
 function initGame(){const loaded=loadGame();if(!loaded){addToInventory('tralalero',2);addToInventory('bombardino',1);addToInventory('chimpanzini',1);addToInventory('frigo',1);initQuests();}if(!state.shopChars||state.shopChars.length===0)refreshShop();calcRate();renderAll();setInterval(()=>{const e=state.rate;state.money+=e;state.stats.totalEarned=(state.stats.totalEarned||0)+e;updateMoneyDisplays();checkQuestProgress();},1000);setInterval(()=>{state.shopTimer--;if(state.shopTimer<=0){refreshShop();state.shopTimer=180;}updateTimerDisplay();},1000);setInterval(()=>saveGame(),30000);
 // 変異イベント: 毎日19:00〜19:10
 setInterval(()=>checkMutationEvent(),30000);
