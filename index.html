@@ -362,6 +362,7 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
     </div>
   </div>
 </div>
+<div class="modal-overlay" id="modal-overlay" style="display:none" onclick="closeModal(event)">
   <div class="modal" id="modal-content"></div>
 </div>
 <div class="toast" id="toast"></div>
@@ -640,7 +641,7 @@ function renderAdmin2LegendList() {
     const sel = admin2SelectedLegend === c.id;
     return `<button onclick="admin2SelectLegend('${c.id}')"
       style="background:${sel?'rgba(255,170,0,0.25)':'rgba(255,170,0,0.06)'};border:2px solid ${sel?'#ffaa00':'rgba(255,170,0,0.2)'};border-radius:8px;padding:6px 4px;font-size:9px;font-weight:900;color:#ffaa00;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;text-align:center">
-      ${svgChar(c.id).replace(/width="[^"]*"/,'width="30"').replace(/height="[^"]*"/,'height="30"').replace(/viewBox/,'width="30" height="30" viewBox')}
+      <div style="width:30px;height:30px;overflow:hidden;margin:0 auto">${svgChar(c.id)}</div>
       <div style="font-size:7px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div>
     </button>`;
   }).join('');
@@ -1149,18 +1150,29 @@ if(superRecipes.length){
 const upgradeable=[];Object.entries(state.inventory).forEach(([id,count])=>{if(count>=3){const ch=CHARACTERS.find(c=>c.id===id);if(ch&&ch.rarity!=='legendary'&&ch.rarity!=='mythic'&&ch.rarity!=='supermythic'&&ch.rarity!=='secret')upgradeable.push({ch,count});}});
 if(!upgradeable.length){const noUpg=document.createElement('div');noUpg.style.cssText='color:var(--muted);font-size:11px;text-align:center;padding:10px';noUpg.textContent='同じキャラを3体以上持つと融合可能！';superDiv.appendChild(noUpg);renderMythicFusion();renderSecretFusion();return;}
 const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(2,1fr);gap:8px;';upgradeable.forEach(({ch,count})=>{const nextRarity=RARITY_ORDER[RARITY_ORDER.indexOf(ch.rarity)+1];const nextRarityLabel=RARITIES[nextRarity]?.label||'???';const ingMuts=getIngredientMutations(ch.id);const ingMutHtml=ingMuts.length?ingMuts.map(m=>MUTATIONS[m]?`<div style="font-size:7px;font-weight:700;color:${MUTATIONS[m].color}">${MUTATIONS[m].name}</div>`:'').join(''):'';const ingMult=ingMuts.reduce((a,m)=>a*(MUTATIONS[m]?MUTATIONS[m].mult:1),1);const effRate=ch.rate*ingMult;const card=document.createElement('div');card.className='fusion-recipe';card.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><div style="position:relative;flex-shrink:0">${svgChar(ch.id)}<div style="position:absolute;bottom:0;right:0;background:var(--accent);color:#fff;font-size:8px;border-radius:6px;padding:0 3px">×3</div></div><div><div style="font-size:10px;font-weight:700">${ch.name}</div><div style="font-size:8px;color:var(--muted)">所持: ${count}体</div>${ingMuts.length?`<div style="margin-top:2px">${ingMutHtml}<div style="font-size:8px;color:var(--accent3)">${fmtRateSm(effRate)}/s</div></div>`:`<div style="font-size:8px;color:var(--muted)">${fmtRateSm(ch.rate)}/s</div>`}<div style="font-size:8px;margin-top:2px">→ <span class="r-${nextRarity}">${nextRarityLabel}</span>ランダム</div></div></div><button class="fusion-btn" style="margin-top:8px;width:100%" onclick="executeUpgradeFusion('${ch.id}')">⬆️ アップグレード融合</button>`;grid.appendChild(card);});superDiv.appendChild(grid);renderMythicFusion();renderSecretFusion();}
-function executeFusion(recipeId){const recipe=FUSION_RECIPES.find(r=>r.id===recipeId);if(!recipe)return;let canFuse=true;recipe.ingredients.forEach(ing=>{if((state.inventory[ing.id]||0)<ing.count)canFuse=false;});if(!canFuse){showToast('素材が足りない！');return;}
+function executeFusion(recipeId){try{
+const recipe=FUSION_RECIPES.find(r=>r.id===recipeId);if(!recipe)return;
+let canFuse=true;recipe.ingredients.forEach(ing=>{if((state.inventory[ing.id]||0)<ing.count)canFuse=false;});
+if(!canFuse){showToast('素材が足りない！');return;}
+const resultChar=CHARACTERS.find(c=>c.id===recipe.result);
+if(!resultChar){showToast('キャラデータが見つからない');return;}
 const ingredientMuts=[];recipe.ingredients.forEach(ing=>{const baseMuts=getIngredientMutations(ing.id);baseMuts.forEach(m=>{if(!ingredientMuts.includes(m))ingredientMuts.push(m);});});
-recipe.ingredients.forEach(ing=>{for(let i=0;i<ing.count;i++)removeFromInventory(ing.id);});addToInventory(recipe.result);state.discovered.add(recipe.result);state.stats.totalFusions=(state.stats.totalFusions||0)+1;const resultChar=CHARACTERS.find(c=>c.id===recipe.result);
+recipe.ingredients.forEach(ing=>{for(let i=0;i<ing.count;i++)removeFromInventory(ing.id);});
+addToInventory(recipe.result);state.discovered.add(recipe.result);state.stats.totalFusions=(state.stats.totalFusions||0)+1;
 const isSuper=recipe.isSuper;
-const finalMuts=[];ingredientMuts.forEach(m=>{if(Math.random()<0.40)finalMuts.push(m);});const pendingMut=state.admin2PendingFusionMut&&MUTATIONS[state.admin2PendingFusionMut]?state.admin2PendingFusionMut:null;const baseMut=pendingMut||rollMutation(0.25);if(baseMut&&!finalMuts.includes(baseMut))finalMuts.push(baseMut);if(pendingMut){state.admin2PendingFusionMut=null;try{renderAdmin2CDs();}catch(e){}}
+const pendingMut=state.admin2PendingFusionMut&&MUTATIONS[state.admin2PendingFusionMut]?state.admin2PendingFusionMut:null;
+if(pendingMut){state.admin2PendingFusionMut=null;try{renderAdmin2CDs();}catch(e){}}
+const finalMuts=[];ingredientMuts.forEach(m=>{if(MUTATIONS[m]&&Math.random()<0.40)finalMuts.push(m);});
+const baseMut=pendingMut||rollMutation(0.25);
+if(baseMut&&MUTATIONS[baseMut]&&!finalMuts.includes(baseMut))finalMuts.push(baseMut);
 const validMuts=finalMuts.filter(m=>!!MUTATIONS[m]);let mutLabel='';if(validMuts.length){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[recipe.result]||0)>0){removeFromInventory(recipe.result);state.base.push({charId:recipe.result,slot:freeSlot});validMuts.forEach(m=>addMutation(recipe.result,freeSlot,m));state.discoveredMutations=state.discoveredMutations||new Set();validMuts.forEach(m=>state.discoveredMutations.add(m));const mult=validMuts.reduce((a,m)=>a*MUTATIONS[m].mult,1);const effRate=resultChar.rate*mult;mutLabel=`<div style="background:#1a1a00;border:1px solid #aa44ff;border-radius:8px;padding:8px;width:100%;text-align:center;">${validMuts.map(m=>`<div style="font-size:11px;font-weight:900;color:${MUTATIONS[m].color}">${MUTATIONS[m].name} が発現！</div>`).join('')}<div style="font-size:13px;color:var(--accent3);font-weight:700;margin-top:4px">変異込み稼ぎ: ${fmtRateSm(effRate)}</div><div style="font-size:9px;color:var(--muted)">(基本 ${fmtRateSm(resultChar.rate)} × ${mult.toFixed(1)}倍)</div></div>`;renderBase();}}renderFusion();renderInventory();calcRate();
 if(isSuper){
   openModal(`<div class="modal-header" style="background:linear-gradient(135deg,#1a0800,#0a0000);border-bottom:1px solid #ff8800"><h3 style="color:#ff8800">🔥 スーパーミシック覚醒！</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body" style="background:linear-gradient(135deg,#1a0800,#0a0000)"><div style="animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 20px #ff8800) drop-shadow(0 0 40px #ff4400)">${svgChar(resultChar.id)}</div><div class="mb-name r-supermythic" style="font-size:20px">${resultChar.name}</div><div class="mb-rarity r-supermythic">🔥 SUPER MYTHIC 🔥</div>${mutLabel}<div class="mb-rate">${fmtMoney(resultChar.rate)}/s</div><div class="mb-desc">${resultChar.desc}</div><button class="mact-btn mact-primary" style="width:100%;margin-top:8px;background:linear-gradient(135deg,#ff8800,#ff4400);color:#000" onclick="closeModal()">🔥 覚醒した！</button></div>`);
 } else {
   openModal(`<div class="modal-header"><h3>🌟 ミシック召喚成功！</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><div style="animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 20px #ff3366)">${svgChar(resultChar.id)}</div><div class="mb-name r-mythic" style="font-size:20px">${resultChar.name}</div><div class="mb-rarity r-mythic">✨ MYTHIC ✨</div>${mutLabel}<div class="mb-rate">${fmtRateSm(resultChar.rate)}</div><div class="mb-desc">${resultChar.desc}</div><button class="mact-btn mact-primary" style="width:100%;margin-top:8px" onclick="closeModal()">🎉 すごい！</button></div>`);
 }
-checkAchievements();saveGame();}
+checkAchievements();saveGame();
+}catch(e){console.error('executeFusion error:',e);showToast('⚠ 融合エラー: '+e.message);}}
 function executeUpgradeFusion(charId){const ch=CHARACTERS.find(c=>c.id===charId);if(!ch||(state.inventory[charId]||0)<3){showToast('3体必要！');return;}const nextRarity=RARITY_ORDER[RARITY_ORDER.indexOf(ch.rarity)+1];const nextPool=CHARACTERS.filter(c=>c.rarity===nextRarity);if(!nextPool.length){showToast('次のレアリティがない！');return;}const result=nextPool[Math.floor(Math.random()*nextPool.length)];for(let i=0;i<3;i++)removeFromInventory(charId);addToInventory(result.id);state.stats.totalFusions=(state.stats.totalFusions||0)+1;
 const upgMut=rollMutation(0.20);
 if(upgMut){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[result.id]||0)>0){removeFromInventory(result.id);state.base.push({charId:result.id,slot:freeSlot});addMutation(result.id,freeSlot,upgMut);state.discoveredMutations=state.discoveredMutations||new Set();state.discoveredMutations.add(upgMut);renderBase();showToast(`⬆️ ${ch.name}×3 → ${result.name}！ 🧬${MUTATIONS[upgMut].name}発現！`);renderFusion();renderInventory();calcRate();checkAchievements();saveGame();return;}}
