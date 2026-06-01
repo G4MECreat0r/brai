@@ -121,7 +121,8 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
 .ach-icon{font-size:22px;flex-shrink:0}
 .ach-info .an{font-size:10px;font-weight:700}
 .ach-info .ad{font-size:8px;color:var(--muted);margin-top:1px}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;display:flex;align-items:center;justify-content:center;padding:16px}
+.event-banner{display:none;background:linear-gradient(90deg,#ff4400,#ff8800,#ffdd00,#ff8800,#ff4400);background-size:200% auto;animation:evt-scroll 3s linear infinite;border-radius:10px;padding:8px 14px;margin:6px 8px;text-align:center;font-size:11px;font-weight:900;color:#000;letter-spacing:.5px;box-shadow:0 0 18px rgba(255,136,0,0.5);}
+@keyframes evt-scroll{0%{background-position:0%}100%{background-position:200%}}
 .modal{background:var(--panel);border:1px solid var(--border);border-radius:16px;width:100%;max-width:360px;max-height:80vh;overflow-y:auto}
 .modal-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--panel);z-index:1}
 .modal-header h3{font-size:14px;font-weight:700}
@@ -170,6 +171,7 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
   <button class="nav-btn" onclick="showPage('admin2')" id="nav-admin2"><span class="icon">👑</span>管理者</button>
 </div>
 <div class="page active" id="page-base">
+  <div id="event-banner" class="event-banner">🔥 変異2倍イベント開催中！ 変異キャラの収益が2倍！（〜6/8まで）🔥</div>
   <div class="money-bar">
     <div><div class="label">💰 所持金</div><div class="money-val" id="money-display">$0</div></div>
     <div style="text-align:center"><div class="save-ind" id="save-indicator">💾 セーブ済</div></div>
@@ -581,7 +583,14 @@ function fmtMoney(v){return v>=1e18?`$${(v/1e18).toFixed(2)}Qi`:v>=1e15?`$${(v/1
 function fmtRate(v){return v>=1e18?`$${(v/1e18).toFixed(2)}Qi/s`:v>=1e15?`$${(v/1e15).toFixed(2)}Qa/s`:v>=1e12?`$${(v/1e12).toFixed(2)}T/s`:v>=1e9?`$${(v/1e9).toFixed(2)}B/s`:v>=1e6?`$${(v/1e6).toFixed(2)}M/s`:v>=1e3?`$${(v/1e3).toFixed(1)}K/s`:`$${v.toFixed(1)}/s`;}
 function fmtRateSm(v){return v>=1e18?`$${(v/1e18).toFixed(2)}Qi/s`:v>=1e15?`$${(v/1e15).toFixed(2)}Qa/s`:v>=1e12?`$${(v/1e12).toFixed(2)}T/s`:v>=1e9?`$${(v/1e9).toFixed(2)}B/s`:v>=1e6?`$${(v/1e6).toFixed(2)}M/s`:v>=1e3?`$${(v/1e3).toFixed(1)}K/s`:`$${v}/s`;}
 function updateMoneyDisplays(){['money-display','money-display2','money-display3','money-display4','money-display5','money-display6'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=fmtMoney(state.money);});['rate-display','rate-display2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=fmtRate(state.rate);});}
-function calcRate(){state.rate=state.base.reduce((s,b)=>{const c=CHARACTERS.find(x=>x.id===b.charId);if(!c)return s;const muts=getMutations(b.charId,b.slot);const mult=muts.reduce((m,mut)=>m*(mut?mut.mult:1.0),1.0);return s+c.rate*mult;},0);updateMoneyDisplays();}
+function getMutEventMult(){
+  const now=new Date();
+  const start=new Date('2026-06-01T00:00:00+09:00');
+  const end  =new Date('2026-06-08T23:59:59+09:00');
+  return (now>=start&&now<=end)?2:1;
+}
+function renderEventBanner(){const b=document.getElementById('event-banner');if(b)b.style.display=getMutEventMult()>1?'block':'none';}
+function calcRate(){const eventMult=getMutEventMult();state.rate=state.base.reduce((s,b)=>{const c=CHARACTERS.find(x=>x.id===b.charId);if(!c)return s;const muts=getMutations(b.charId,b.slot);const mult=muts.reduce((m,mut)=>m*(mut?mut.mult:1.0),1.0);return s+c.rate*(muts.length?mult*eventMult:1.0);},0);updateMoneyDisplays();renderEventBanner();}
 // ===== 管理者パネル2 =====
 const ADMIN2_COST = 3e12;
 const LEGEND_CHARS = CHARACTERS ? [] : []; // 後でフィル
@@ -1424,9 +1433,8 @@ function clearMutationsForSlot(slot) {
   Object.keys(state.mutations).forEach(k=>{ if(k.endsWith('_'+slot)) delete state.mutations[k]; });
 }
 function rollMutation(chance) {
-  // イベント中は確率2倍
-  const mult = state.mutationEventActive ? 2.0 : 1.0;
-  if(Math.random() < chance * mult) return MUTATION_POOL[Math.floor(Math.random()*MUTATION_POOL.length)];
+  const mult = getMutEventMult(); // イベント中は確率2倍
+  if(Math.random() < Math.min(chance * mult, 1)) return MUTATION_POOL[Math.floor(Math.random()*MUTATION_POOL.length)];
   return null;
 }
 // 素材キャラが持つ変異リストを取得（インベントリ内なのでスロット不明→mutations全体から検索）
