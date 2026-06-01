@@ -1134,7 +1134,7 @@ function executeMutLab(){
   showToast(`🧬 ${ch.name} に ${mut.name} を付与した！`);
   saveGame();
 }
-function buyChar(i){const ch=state.shopChars[i];const buyCount=ch.buyCount||0;const maxBuy=5;if(buyCount>=maxBuy||state.money<ch.price){showToast('💰 お金が足りない！');return;}state.money-=ch.price;addToInventory(ch.id);state.shopChars[i].buyCount=(buyCount+1);if(state.shopChars[i].buyCount>=maxBuy)state.shopChars[i].sold=true;state.stats.totalBuys=(state.stats.totalBuys||0)+1;renderShop();updateMoneyDisplays();renderInventory();const mutRoll=rollMutation(0.01);if(mutRoll){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[ch.id]||0)>0){removeFromInventory(ch.id);state.base.push({charId:ch.id,slot:freeSlot});addMutation(ch.id,freeSlot,mutRoll);if(!state.discoveredMutations)state.discoveredMutations=new Set();state.discoveredMutations.add(mutRoll);calcRate();renderBase();renderInventory();showToast('✨ '+ch.name+' に '+MUTATIONS[mutRoll].name+' が発現！');}else{showToast('🎉 '+ch.name+' をゲット！');}}else{showToast('🎉 '+ch.name+' をゲット！');}checkQuestProgress();checkAchievements();saveGame();}
+function buyChar(i){const ch=state.shopChars[i];const buyCount=ch.buyCount||0;const maxBuy=5;if(buyCount>=maxBuy||state.money<ch.price){showToast('💰 お金が足りない！');return;}state.money-=ch.price;addToInventory(ch.id);state.shopChars[i].buyCount=(buyCount+1);if(state.shopChars[i].buyCount>=maxBuy)state.shopChars[i].sold=true;state.stats.totalBuys=(state.stats.totalBuys||0)+1;renderShop();updateMoneyDisplays();renderInventory();const mutRoll=rollMutation(0.05);if(mutRoll){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[ch.id]||0)>0){removeFromInventory(ch.id);state.base.push({charId:ch.id,slot:freeSlot});addMutation(ch.id,freeSlot,mutRoll);if(!state.discoveredMutations)state.discoveredMutations=new Set();state.discoveredMutations.add(mutRoll);calcRate();renderBase();renderInventory();showToast('✨ '+ch.name+' に '+MUTATIONS[mutRoll].name+' が発現！');}else{showToast('🎉 '+ch.name+' をゲット！');}}else{showToast('🎉 '+ch.name+' をゲット！');}checkQuestProgress();checkAchievements();saveGame();}
 function updateTimerDisplay(){const m=Math.floor(state.shopTimer/60),s=state.shopTimer%60;const el=document.getElementById('shop-timer');if(el)el.textContent=`${m}:${s.toString().padStart(2,'0')}`;}
 let invFilter='all';
 function filterInv(f,btn){invFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderInventory();}
@@ -1224,7 +1224,7 @@ let tradeOfferFilter='all';
 function renderTrade(){
   const container=document.getElementById('offer-slots-container');
   container.innerHTML='';
-  const myChars=Object.keys(state.inventory).filter(id=>{if(state.inventory[id]<=0)return false;const ch=CHARACTERS.find(x=>x.id===id);return ch&&ch.rarity!=='mythic'&&ch.rarity!=='supermythic'&&ch.rarity!=='secret';});
+  const myChars=Object.keys(state.inventory).filter(id=>{if(state.inventory[id]<=0)return false;const ch=CHARACTERS.find(x=>x.id===id);return ch&&ch.rarity!=='mythic'&&ch.rarity!=='supermythic'&&ch.rarity!=='secret'&&ch.rarity!=='divine';});
   if(!myChars.length){container.innerHTML='<div style="color:var(--muted);font-size:11px">トレードできるキャラがいない</div>';renderReceiveCandidates();return;}
   const filterBar=document.createElement('div');
   filterBar.style.cssText='display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px;';
@@ -1261,7 +1261,7 @@ function renderTrade(){
   renderReceiveCandidates();
 }
 function selectOfferChar(charId){if(state.tradeOfferChar===charId){state.tradeOfferChar=null;state.tradeReceiveCandidates=[];state.tradeReceiveSelected=null;}else{state.tradeOfferChar=charId;generateReceiveCandidates(charId);}renderTrade();}
-function generateReceiveCandidates(offerCharId){const ch=CHARACTERS.find(x=>x.id===offerCharId);if(!ch){state.tradeReceiveCandidates=[];return;}const rarityOrder=['common','uncommon','rare','epic','legendary'];const myRarityIdx=rarityOrder.indexOf(ch.rarity);const pool=CHARACTERS.filter(c=>c.rarity!=='mythic'&&c.rarity!=='supermythic'&&c.rarity!=='secret'&&c.id!==offerCharId&&Math.abs(rarityOrder.indexOf(c.rarity)-myRarityIdx)<=1);const shuffled=[...pool].sort(()=>Math.random()-.5).slice(0,6);state.tradeReceiveCandidates=shuffled;state.tradeReceiveSelected=null;}
+function generateReceiveCandidates(offerCharId){const ch=CHARACTERS.find(x=>x.id===offerCharId);if(!ch){state.tradeReceiveCandidates=[];return;}const rarityOrder=['common','uncommon','rare','epic','legendary'];const myRarityIdx=rarityOrder.indexOf(ch.rarity);const pool=CHARACTERS.filter(c=>c.rarity!=='mythic'&&c.rarity!=='supermythic'&&c.rarity!=='secret'&&c.rarity!=='divine'&&c.id!==offerCharId&&Math.abs(rarityOrder.indexOf(c.rarity)-myRarityIdx)<=1);const shuffled=[...pool].sort(()=>Math.random()-.5).slice(0,6);state.tradeReceiveCandidates=shuffled;state.tradeReceiveSelected=null;}
 function renderReceiveCandidates(){const area=document.getElementById('recv-candidates-area');const hint=document.getElementById('recv-hint');area.innerHTML='';if(!state.tradeOfferChar||!state.tradeReceiveCandidates.length){
   // キャラ未選択 → プレースホルダー枠を表示
   hint.style.display='';
@@ -1276,10 +1276,10 @@ hint.style.display='none';const grid=document.createElement('div');grid.style.cs
 // ただしこのキャラがインベントリにあれば変異情報は表示できないため通常表示
 card.className='recv-cand'+(selected?' selected':'');card.innerHTML=`${svgChar(ch.id)}<div class="rcn">${ch.name}</div><div class="rcr r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div><div class="rcrate">${fmtRateSm(ch.rate)}</div>`;card.onclick=()=>{state.tradeReceiveSelected=ch.id;renderReceiveCandidates();};grid.appendChild(card);});area.appendChild(grid);}
 function executePlayerTrade(){if(!state.tradeOfferChar){showToast('渡すキャラを選んでください');return;}if(!state.tradeReceiveSelected){showToast('もらうキャラを選んでください');return;}if(!state.inventory[state.tradeOfferChar]||state.inventory[state.tradeOfferChar]<=0){showToast('そのキャラを持っていない！');return;}const giveChar=CHARACTERS.find(x=>x.id===state.tradeOfferChar);const getChar=CHARACTERS.find(x=>x.id===state.tradeReceiveSelected);removeFromInventory(state.tradeOfferChar);addToInventory(state.tradeReceiveSelected);state.tradeOfferChar=null;state.tradeReceiveCandidates=[];state.tradeReceiveSelected=null;state.stats.totalTrades=(state.stats.totalTrades||0)+1;renderTrade();renderInventory();calcRate();showToast(`🔄 ${giveChar.name} → ${getChar.name} トレード成功！`);checkQuestProgress();checkAchievements();saveGame();}
-function generateCPUTrade(){const myChars=Object.keys(state.inventory).filter(id=>state.inventory[id]>0&&(()=>{const ch=CHARACTERS.find(x=>x.id===id);return ch&&ch.rarity!=='mythic'&&ch.rarity!=='supermythic'&&ch.rarity!=='secret';})());if(!myChars.length){showToast('トレードできるキャラがいない');return;}const wantId=myChars[Math.floor(Math.random()*myChars.length)];const wantChar=CHARACTERS.find(x=>x.id===wantId);const rarityOrder=['common','uncommon','rare','epic','legendary'];const myRarityIdx=rarityOrder.indexOf(wantChar.rarity);const offerPool=CHARACTERS.filter(c=>c.rarity!=='mythic'&&c.rarity!=='supermythic'&&c.rarity!=='secret'&&c.id!==wantId&&Math.abs(rarityOrder.indexOf(c.rarity)-myRarityIdx)<=1);const offerChar=offerPool[Math.floor(Math.random()*offerPool.length)];
+function generateCPUTrade(){const myChars=Object.keys(state.inventory).filter(id=>state.inventory[id]>0&&(()=>{const ch=CHARACTERS.find(x=>x.id===id);return ch&&ch.rarity!=='mythic'&&ch.rarity!=='supermythic'&&ch.rarity!=='secret'&&ch.rarity!=='divine';})());if(!myChars.length){showToast('トレードできるキャラがいない');return;}const wantId=myChars[Math.floor(Math.random()*myChars.length)];const wantChar=CHARACTERS.find(x=>x.id===wantId);const rarityOrder=['common','uncommon','rare','epic','legendary'];const myRarityIdx=rarityOrder.indexOf(wantChar.rarity);const offerPool=CHARACTERS.filter(c=>c.rarity!=='mythic'&&c.rarity!=='supermythic'&&c.rarity!=='secret'&&c.rarity!=='divine'&&c.id!==wantId&&Math.abs(rarityOrder.indexOf(c.rarity)-myRarityIdx)<=1);const offerChar=offerPool[Math.floor(Math.random()*offerPool.length)];
 // 25%の確率でCPUが変異付きキャラを提示する（同じ変異は付かない、何個でもOK）
 let offerMutations=[];
-if(Math.random()<0.25){
+if(Math.random()<0.40){
   const allMuts=[...MUTATION_POOL];
   // シャッフルしてランダムな個数（1〜全種）をピック、各変異は一意
   for(let i=allMuts.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[allMuts[i],allMuts[j]]=[allMuts[j],allMuts[i]];}
@@ -1349,8 +1349,8 @@ addToInventory(recipe.result);state.discovered.add(recipe.result);state.stats.to
 const isSuper=recipe.isSuper;
 const pendingMut=state.admin2PendingFusionMut&&MUTATIONS[state.admin2PendingFusionMut]?state.admin2PendingFusionMut:null;
 if(pendingMut){state.admin2PendingFusionMut=null;try{renderAdmin2CDs();}catch(e){}}
-const finalMuts=[];ingredientMuts.forEach(m=>{if(MUTATIONS[m]&&Math.random()<0.40)finalMuts.push(m);});
-const baseMut=pendingMut||rollMutation(0.25);
+const finalMuts=[];ingredientMuts.forEach(m=>{if(MUTATIONS[m]&&Math.random()<0.70)finalMuts.push(m);});
+const baseMut=pendingMut||rollMutation(0.40);
 if(baseMut&&MUTATIONS[baseMut]&&!finalMuts.includes(baseMut))finalMuts.push(baseMut);
 const validMuts=finalMuts.filter(m=>!!MUTATIONS[m]);let mutLabel='';if(validMuts.length){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[recipe.result]||0)>0){removeFromInventory(recipe.result);state.base.push({charId:recipe.result,slot:freeSlot});validMuts.forEach(m=>addMutation(recipe.result,freeSlot,m));state.discoveredMutations=state.discoveredMutations||new Set();validMuts.forEach(m=>state.discoveredMutations.add(m));const mult=validMuts.reduce((a,m)=>a*MUTATIONS[m].mult,1);const effRate=resultChar.rate*mult;mutLabel=`<div style="background:#1a1a00;border:1px solid #aa44ff;border-radius:8px;padding:8px;width:100%;text-align:center;">${validMuts.map(m=>`<div style="font-size:11px;font-weight:900;color:${MUTATIONS[m].color}">${MUTATIONS[m].name} が発現！</div>`).join('')}<div style="font-size:13px;color:var(--accent3);font-weight:700;margin-top:4px">変異込み稼ぎ: ${fmtRateSm(effRate)}</div><div style="font-size:9px;color:var(--muted)">(基本 ${fmtRateSm(resultChar.rate)} × ${mult.toFixed(1)}倍)</div></div>`;renderBase();}}renderFusion();renderInventory();calcRate();
 if(isSuper){
@@ -1361,7 +1361,7 @@ if(isSuper){
 checkAchievements();saveGame();
 }catch(e){console.error('executeFusion error:',e);showToast('⚠ 融合エラー: '+e.message);}}
 function executeUpgradeFusion(charId){const ch=CHARACTERS.find(c=>c.id===charId);if(!ch||(state.inventory[charId]||0)<3){showToast('3体必要！');return;}const nextRarity=RARITY_ORDER[RARITY_ORDER.indexOf(ch.rarity)+1];const nextPool=CHARACTERS.filter(c=>c.rarity===nextRarity);if(!nextPool.length){showToast('次のレアリティがない！');return;}const result=nextPool[Math.floor(Math.random()*nextPool.length)];for(let i=0;i<3;i++)removeFromInventory(charId);addToInventory(result.id);state.stats.totalFusions=(state.stats.totalFusions||0)+1;
-const upgMut=rollMutation(0.20);
+const upgMut=rollMutation(0.35);
 if(upgMut){const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));if(freeSlot!==undefined&&(state.inventory[result.id]||0)>0){removeFromInventory(result.id);state.base.push({charId:result.id,slot:freeSlot});addMutation(result.id,freeSlot,upgMut);state.discoveredMutations=state.discoveredMutations||new Set();state.discoveredMutations.add(upgMut);renderBase();showToast(`⬆️ ${ch.name}×3 → ${result.name}！ 🧬${MUTATIONS[upgMut].name}発現！`);renderFusion();renderInventory();calcRate();checkAchievements();saveGame();return;}}
 renderFusion();renderInventory();calcRate();showToast(`⬆️ ${ch.name}×3 → ${result.name}！`);checkAchievements();saveGame();}
 // ===== シークレット融合 =====
@@ -1444,6 +1444,9 @@ function executeSecretFusion(){
   const secretChar=CHARACTERS.find(c=>c.id==='omnisecret');
   // 変異は素材の変異を全て確実に引き継ぎ（重複なし）
   const finalMuts=[...allIngMuts]; // 重複なし保証済み
+  // 60%で追加変異をランダム付与
+  const extraMut=rollMutation(0.60);
+  if(extraMut&&!finalMuts.includes(extraMut))finalMuts.push(extraMut);
   if(finalMuts.length){
     const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));
     if(freeSlot!==undefined){
@@ -1515,26 +1518,39 @@ function renderMythicFusion(){
 function executeMythicFusion(charId){
   const ch=CHARACTERS.find(c=>c.id===charId);
   if(!ch||(state.inventory[charId]||0)<3){showToast('ミシック3体必要！');return;}
+  // 消費する3体のインベントリ変異を収集
+  const ingMuts=[];
+  let consumed=0;
+  for(let i=0;i<state.invItems.length&&consumed<3;i++){
+    const it=state.invItems[i];
+    if(it.charId===charId){
+      it.muts.forEach(m=>{if(!ingMuts.includes(m))ingMuts.push(m);});
+      consumed++;
+    }
+  }
   for(let i=0;i<3;i++)removeFromInventory(charId);
   state.stats.totalFusions=(state.stats.totalFusions||0)+1;
-  const mut=rollMutation(0.50); // 50%
-  if(mut){
+  // 素材の変異を70%で継承 + 新規変異70%
+  const finalMuts=[...ingMuts.filter(m=>MUTATIONS[m]&&Math.random()<0.70)];
+  const mut=rollMutation(0.70);
+  if(mut&&!finalMuts.includes(mut))finalMuts.push(mut);
+  if(finalMuts.length){
     const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));
     if(freeSlot!==undefined){
       state.base.push({charId:ch.id,slot:freeSlot});
-      addMutation(ch.id,freeSlot,mut);
+      finalMuts.forEach(m=>addMutation(ch.id,freeSlot,m));
       state.discoveredMutations=state.discoveredMutations||new Set();
-      state.discoveredMutations.add(mut);
-      const mult=MUTATIONS[mut]?MUTATIONS[mut].mult:1;
+      finalMuts.forEach(m=>state.discoveredMutations.add(m));
+      const mult=finalMuts.reduce((a,m)=>a*(MUTATIONS[m]?MUTATIONS[m].mult:1),1);
       renderBase();renderFusion();renderInventory();calcRate();
       openModal(`<div class="modal-header"><h3>👑 究極融合成功！</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
 <div class="modal-body">
 <div style="animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 30px #ff3366)">${svgChar(ch.id)}</div>
 <div class="mb-name r-mythic" style="font-size:20px">${ch.name}</div>
 <div class="mb-rarity r-mythic">✨ MYTHIC ✨</div>
-<div style="background:#1a0a2a;border:2px solid ${MUTATIONS[mut].color};border-radius:10px;padding:10px;text-align:center;width:100%">
-  <div style="font-size:14px;font-weight:900;color:${MUTATIONS[mut].color}">${MUTATIONS[mut].name} が発現！！</div>
-  <div style="font-size:12px;color:var(--accent3);margin-top:4px">収益 ×${mult} → ${fmtRateSm(ch.rate*mult)}</div>
+<div style="background:#1a0a2a;border:2px solid #aa44ff;border-radius:10px;padding:10px;text-align:center;width:100%">
+  ${finalMuts.map(m=>`<div style="font-size:12px;font-weight:900;color:${MUTATIONS[m].color}">${MUTATIONS[m].name} が発現！</div>`).join('')}
+  <div style="font-size:12px;color:var(--accent3);margin-top:4px">収益 ×${mult.toFixed(1)} → ${fmtRateSm(ch.rate*mult)}</div>
 </div>
 <button class="mact-btn mact-primary" style="width:100%;margin-top:8px" onclick="closeModal()">🎉 最強！</button>
 </div>`);
@@ -1626,11 +1642,25 @@ function executeDivineFusion(){
   });
   state.money-=DIVINE_COST;
   state.divineFused=true;
-  addToInventory('divineemperor');
+  // 素材の変異を引き継いで基地に配置
+  const freeSlot=Array.from({length:state.baseSlots},(_,j)=>j).find(j=>!state.base.find(b=>b.slot===j));
+  if(freeSlot!==undefined&&allMuts.length){
+    state.base.push({charId:'divineemperor',slot:freeSlot});
+    allMuts.forEach(m=>addMutation('divineemperor',freeSlot,m));
+    state.discoveredMutations=state.discoveredMutations||new Set();
+    allMuts.forEach(m=>state.discoveredMutations.add(m));
+    state.discovered.add('divineemperor');
+    syncInventoryHash();
+    renderBase();
+  } else {
+    addToInventory('divineemperor');
+  }
   state.discovered.add('divineemperor');
   state.stats.totalFusions=(state.stats.totalFusions||0)+1;
+  const divMult=allMuts.reduce((a,m)=>a*(MUTATIONS[m]?MUTATIONS[m].mult:1),1);
   updateMoneyDisplays();calcRate();renderInventory();renderFusion();
   const divineChar=CHARACTERS.find(c=>c.id==='divineemperor');
+  const mutDisplay=allMuts.length?`<div style="background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.4);border-radius:10px;padding:8px;margin-bottom:8px">${allMuts.map(m=>`<div style="font-size:11px;font-weight:900;color:${MUTATIONS[m].color}">${MUTATIONS[m].name}</div>`).join('')}<div style="font-size:11px;color:#ffd700;font-weight:700;margin-top:4px">変異込み収益: ${fmtMoney(divineChar.rate*divMult)}/s</div></div>`:'';
   openModal(`<div class="modal-header" style="background:linear-gradient(135deg,#0a0800,#1a1000);border-bottom:2px solid #ffd700">
     <h3 style="background:linear-gradient(90deg,#fff8dc,#ffd700,#ff8800,#ffd700,#fff8dc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:divine-text 2s linear infinite">✨ 神域降臨 ✨</h3>
     <button class="modal-close" onclick="closeModal()">✕</button>
@@ -1639,6 +1669,7 @@ function executeDivineFusion(){
     <div style="font-size:80px;animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 20px #ffd700)">${svgChar('divineemperor')}</div>
     <div style="font-size:18px;font-weight:900;background:linear-gradient(90deg,#fff8dc,#ffd700,#ff8800);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:8px 0">神域皇帝 ディバイン</div>
     <div style="font-size:12px;color:#ffd700;margin-bottom:8px;animation:divine-glow 1.5s infinite;letter-spacing:2px">✨ DIVINE ✨</div>
+    ${mutDisplay}
     <div style="font-size:13px;color:var(--accent3);font-weight:700;margin-bottom:4px">収益: ${fmtMoney(divineChar.rate)}/s</div>
     <div style="font-size:10px;color:var(--muted);font-style:italic;margin-bottom:12px">${divineChar.desc}</div>
     <div style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.3);border-radius:10px;padding:10px;font-size:10px;color:#ffd700">
