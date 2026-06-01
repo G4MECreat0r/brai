@@ -154,7 +154,12 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
 .border-mythic{animation:mythic-glow 2s ease-in-out infinite!important}
 @keyframes supermythic-glow{0%,100%{box-shadow:0 0 10px #ff8800,0 0 20px #ff8800;border-color:#ff8800}50%{box-shadow:0 0 25px #ff8800,0 0 50px #ffcc00,0 0 80px #ff4400;border-color:#ffcc00}}
 @keyframes secret-glow{0%{box-shadow:0 0 15px #00ffff,0 0 30px #ff00ff;border-color:#00ffff}33%{box-shadow:0 0 15px #ff00ff,0 0 30px #00ffff;border-color:#ff00ff}66%{box-shadow:0 0 15px #ffff00,0 0 30px #00ffff;border-color:#ffff00}100%{box-shadow:0 0 15px #00ffff,0 0 30px #ff00ff;border-color:#00ffff}}
-@keyframes secret-text{0%{background-position:0%}100%{background-position:200%}}
+@keyframes divine-text{0%{background-position:0%}100%{background-position:200%}}
+@keyframes divine-glow{0%,100%{box-shadow:0 0 12px #ffd700,0 0 24px #ffd700;border-color:#ffd700}50%{box-shadow:0 0 30px #ffd700,0 0 60px #fff8dc,0 0 100px #ffaa00;border-color:#fff8dc}}
+.r-divine{background:linear-gradient(90deg,#fff8dc,#ffd700,#ff8800,#ffd700,#fff8dc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:divine-text 2s linear infinite;font-weight:900}
+.dot-divine{background:linear-gradient(135deg,#ffd700,#ff8800)}
+.border-divine{animation:divine-glow 1.5s ease-in-out infinite!important}
+.filter-btn-divine{color:#ffd700!important;border-color:#ffd700!important}
 .quest-badge{position:absolute;top:2px;right:2px;background:var(--accent);color:#fff;font-size:7px;font-weight:700;border-radius:8px;padding:0 4px;min-width:14px;text-align:center;line-height:14px}
 </style>
 </head>
@@ -234,6 +239,7 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
     <button class="filter-btn" onclick="filterInv('mythic',this)">ミシック</button>
     <button class="filter-btn" onclick="filterInv('supermythic',this)" style="color:#ff8800;border-color:#ff8800">スーパーミシック</button>
     <button class="filter-btn" onclick="filterInv('secret',this)" style="background:linear-gradient(135deg,#001a2a,#1a0030);border-color:#00ffff;color:#00ffff">⭐シークレット</button>
+    <button class="filter-btn" onclick="filterInv('divine',this)" style="background:linear-gradient(135deg,#1a1000,#2a1500);border-color:#ffd700;color:#ffd700">✨ディバイン</button>
   </div>
   <div class="inv-grid" id="inv-grid"></div>
 </div>
@@ -290,6 +296,11 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
     <div class="fusion-title" style="background:linear-gradient(90deg,#00ffff,#ff00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">💎 シークレット召喚</div>
     <div style="font-size:10px;color:#aaaaff;margin-bottom:10px">スーパーミシック2体 + ミシック1体 → 伝説を超えた存在。素材の変異は必ず引き継がれる！</div>
     <div id="secret-fusion"></div>
+  </div>
+  <div style="background:linear-gradient(135deg,#0a0800,#1a1000);border:2px solid rgba(255,215,0,0.4);border-radius:14px;padding:12px;margin-top:4px">
+    <div class="fusion-title" style="background:linear-gradient(90deg,#fff8dc,#ffd700,#ff8800,#ffd700,#fff8dc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:divine-text 2s linear infinite">✨ DIVINE FUSION</div>
+    <div style="font-size:10px;color:#b8860b;margin-bottom:10px">変異付きシークレット×5 ＋ 図鑑完全制覇 ＋ $500B → 全てを超えた神域の存在</div>
+    <div id="divine-fusion"></div>
   </div>
 </div>
 <div class="page" id="page-quest">
@@ -379,6 +390,8 @@ const MUTATIONS = {
   titan:    {id:'titan',    name:'💪 タイタン変異',color:'#ff8800', desc:'収益 ×4.0',  mult:4.0},
   void:     {id:'void',     name:'🕳️ 虚空変異',  color:'#220044', desc:'収益 ×6.0',  mult:6.0},
   rainbow:  {id:'rainbow',  name:'🌈 虹色変異',   color:'#ff88cc', desc:'収益 ×2.0',  mult:2.0},
+  curse:    {id:'curse',    name:'💀 呪い変異',    color:'#8b0000', desc:'収益 ×6.5',  mult:6.5},
+  yinyang:  {id:'yinyang',  name:'☯️ 陰陽変異',   color:'#e0e0e0', desc:'収益 ×7.0',  mult:7.0},
 };
 const MUTATION_POOL = Object.keys(MUTATIONS);
 
@@ -439,9 +452,55 @@ cosmicbrain:`<svg viewBox="0 0 60 60"><defs><radialGradient id="cg" cx="40%" cy=
 omegaboss:`<svg viewBox="0 0 60 60"><defs><radialGradient id="og" cx="50%" cy="30%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#ffdd00"/><stop offset="100%" stop-color="#aa6600"/></radialGradient></defs><polygon points="30,2 38,18 56,18 42,30 48,48 30,38 12,48 18,30 4,18 22,18" fill="url(#og)"/><circle cx="30" cy="28" r="12" fill="#ffcc00" opacity=".9"/><circle cx="24" cy="26" r="3.5" fill="#fff"/><circle cx="25" cy="27" r="1.8" fill="#000"/><circle cx="36" cy="26" r="3.5" fill="#fff"/><circle cx="37" cy="27" r="1.8" fill="#000"/><path d="M24,33 Q30,38 36,33" stroke="#996600" stroke-width="2" fill="none"/></svg>`,
 voidgod:`<svg viewBox="0 0 60 60"><defs><radialGradient id="vgg" cx="50%" cy="40%"><stop offset="0%" stop-color="#cc88ff"/><stop offset="50%" stop-color="#440088"/><stop offset="100%" stop-color="#000011"/></radialGradient></defs><circle cx="30" cy="30" r="26" fill="url(#vgg)"/><path d="M30,4 L34,16 L46,12 L38,22 L50,26 L38,30 L46,42 L34,38 L30,50 L26,38 L14,42 L22,30 L10,26 L22,22 L14,12 L26,16Z" fill="#aa44ff" opacity=".5"/><circle cx="23" cy="27" r="5" fill="#fff"/><circle cx="24.5" cy="28" r="2.5" fill="#220055"/><circle cx="37" cy="27" r="5" fill="#fff"/><circle cx="38.5" cy="28" r="2.5" fill="#220055"/><path d="M22,35 Q30,40 38,35" stroke="#ff88ff" stroke-width="2.5" fill="none"/><circle cx="30" cy="30" r="8" fill="none" stroke="#cc44ff" stroke-width="1" opacity=".6"/><circle cx="30" cy="30" r="14" fill="none" stroke="#8822ff" stroke-width="0.8" opacity=".4"/></svg>`,
 abyssking:`<svg viewBox="0 0 60 60"><defs><radialGradient id="akg" cx="45%" cy="30%"><stop offset="0%" stop-color="#ffaa44"/><stop offset="40%" stop-color="#cc4400"/><stop offset="100%" stop-color="#1a0000"/></radialGradient></defs><rect x="4" y="4" width="52" height="52" rx="8" fill="url(#akg)"/><path d="M30,2 L36,14 L50,10 L42,22 L56,26 L42,30 L50,44 L36,40 L30,54 L24,40 L10,44 L18,30 L4,26 L18,22 L10,10 L24,14Z" fill="#ff6600" opacity=".4"/><circle cx="22" cy="26" r="5" fill="#ffffaa"/><circle cx="23.5" cy="27" r="2.5" fill="#8b0000"/><circle cx="38" cy="26" r="5" fill="#ffffaa"/><circle cx="39.5" cy="27" r="2.5" fill="#8b0000"/><path d="M22,35 Q30,41 38,35" stroke="#ffaa00" stroke-width="3" fill="none"/><path d="M24,16 L22,8 L28,14 L30,6 L32,14 L38,8 L36,16" fill="#ffcc00" stroke="#ff8800" stroke-width="1"/></svg>`,
-omnisecret:`<svg viewBox="0 0 60 60"><defs><radialGradient id="osg" cx="50%" cy="40%"><stop offset="0%" stop-color="#ffffff"/><stop offset="25%" stop-color="#00ffff"/><stop offset="60%" stop-color="#ff00ff"/><stop offset="100%" stop-color="#000033"/></radialGradient><radialGradient id="osg2" cx="50%" cy="50%"><stop offset="0%" stop-color="#ffff00"/><stop offset="100%" stop-color="#ff00ff" stop-opacity="0"/></radialGradient></defs><circle cx="30" cy="30" r="28" fill="url(#osg)"/><circle cx="30" cy="30" r="20" fill="url(#osg2)" opacity=".5"/><path d="M30,2 L33,12 L42,6 L38,16 L48,14 L42,22 L52,24 L44,28 L52,34 L42,34 L46,44 L36,40 L34,50 L30,42 L26,50 L24,40 L14,44 L18,34 L8,34 L16,28 L8,24 L18,22 L12,14 L22,16 L18,6 L27,12Z" fill="#fff" opacity=".3"/><circle cx="23" cy="27" r="5.5" fill="#fff"/><circle cx="24.5" cy="28" r="2.8" fill="#00aaff"/><circle cx="26" cy="26.5" r="1" fill="#fff"/><circle cx="37" cy="27" r="5.5" fill="#fff"/><circle cx="38.5" cy="28" r="2.8" fill="#ff00aa"/><circle cx="40" cy="26.5" r="1" fill="#fff"/><path d="M22,36 Q30,43 38,36" stroke="#ffff00" stroke-width="3" fill="none"/><path d="M30,6 L30,2 M30,58 L30,54 M6,30 L2,30 M58,30 L54,30" stroke="#00ffff" stroke-width="1.5" opacity=".8"/></svg>`
+omnisecret:`<svg viewBox="0 0 60 60"><defs><radialGradient id="osg" cx="50%" cy="40%"><stop offset="0%" stop-color="#ffffff"/><stop offset="25%" stop-color="#00ffff"/><stop offset="60%" stop-color="#ff00ff"/><stop offset="100%" stop-color="#000033"/></radialGradient><radialGradient id="osg2" cx="50%" cy="50%"><stop offset="0%" stop-color="#ffff00"/><stop offset="100%" stop-color="#ff00ff" stop-opacity="0"/></radialGradient></defs><circle cx="30" cy="30" r="28" fill="url(#osg)"/><circle cx="30" cy="30" r="20" fill="url(#osg2)" opacity=".5"/><path d="M30,2 L33,12 L42,6 L38,16 L48,14 L42,22 L52,24 L44,28 L52,34 L42,34 L46,44 L36,40 L34,50 L30,42 L26,50 L24,40 L14,44 L18,34 L8,34 L16,28 L8,24 L18,22 L12,14 L22,16 L18,6 L27,12Z" fill="#fff" opacity=".3"/><circle cx="23" cy="27" r="5.5" fill="#fff"/><circle cx="24.5" cy="28" r="2.8" fill="#00aaff"/><circle cx="26" cy="26.5" r="1" fill="#fff"/><circle cx="37" cy="27" r="5.5" fill="#fff"/><circle cx="38.5" cy="28" r="2.8" fill="#ff00aa"/><circle cx="40" cy="26.5" r="1" fill="#fff"/><path d="M22,36 Q30,43 38,36" stroke="#ffff00" stroke-width="3" fill="none"/><path d="M30,6 L30,2 M30,58 L30,54 M6,30 L2,30 M58,30 L54,30" stroke="#00ffff" stroke-width="1.5" opacity=".8"/></svg>`,
+divineemperor:`<svg viewBox="0 0 60 60"><defs><radialGradient id="dvbg" cx="50%" cy="35%"><stop offset="0%" stop-color="#fffbe0"/><stop offset="30%" stop-color="#ffd700"/><stop offset="65%" stop-color="#b8860b"/><stop offset="100%" stop-color="#1a0a00"/></radialGradient><radialGradient id="dvglow" cx="50%" cy="50%"><stop offset="0%" stop-color="#fff9c4" stop-opacity="0.9"/><stop offset="100%" stop-color="#ffd700" stop-opacity="0"/></radialGradient><linearGradient id="dvcrown" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="50%" stop-color="#ffd700"/><stop offset="100%" stop-color="#ff8800"/></linearGradient><linearGradient id="dvwing" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffd700" stop-opacity="0.9"/><stop offset="100%" stop-color="#ff4400" stop-opacity="0.3"/></linearGradient></defs>
+<!-- オーラ -->
+<circle cx="30" cy="30" r="29" fill="url(#dvglow)" opacity="0.5"/>
+<circle cx="30" cy="30" r="26" fill="url(#dvbg)"/>
+<!-- 後光リング -->
+<circle cx="30" cy="13" r="8" fill="none" stroke="#ffd700" stroke-width="1.5" opacity="0.9"/>
+<circle cx="30" cy="13" r="9.5" fill="none" stroke="#fff8dc" stroke-width="0.5" opacity="0.6"/>
+<!-- 翼 -->
+<path d="M30,28 Q14,18 8,26 Q12,22 18,28 Q14,24 20,30Z" fill="url(#dvwing)" opacity="0.85"/>
+<path d="M30,28 Q46,18 52,26 Q48,22 42,28 Q46,24 40,30Z" fill="url(#dvwing)" opacity="0.85"/>
+<path d="M30,30 Q10,22 4,32 Q9,26 16,32Z" fill="#ffd700" opacity="0.5"/>
+<path d="M30,30 Q50,22 56,32 Q51,26 44,32Z" fill="#ffd700" opacity="0.5"/>
+<!-- 体 -->
+<ellipse cx="30" cy="36" rx="10" ry="11" fill="#fffbe0"/>
+<ellipse cx="30" cy="35" rx="8" ry="9" fill="#fff8c0"/>
+<!-- 鎧 -->
+<path d="M22,30 Q30,27 38,30 L36,42 Q30,45 24,42Z" fill="#ffd700" opacity="0.9"/>
+<path d="M25,30 Q30,28 35,30 L34,40 Q30,43 26,40Z" fill="#fff8dc"/>
+<!-- 紋章 -->
+<path d="M30,31 L31.5,35 L36,35 L32.5,37.5 L34,42 L30,39.5 L26,42 L27.5,37.5 L24,35 L28.5,35Z" fill="#ffd700" opacity="0.95"/>
+<!-- 頭 -->
+<ellipse cx="30" cy="21" rx="8.5" ry="9" fill="#fffbe0"/>
+<!-- 王冠 -->
+<path d="M21.5,15 L22,19 L25,16 L27,19.5 L30,15.5 L33,19.5 L35,16 L38,19 L38.5,15 L36,17 L33,14 L30,17 L27,14 L24,17Z" fill="url(#dvcrown)"/>
+<circle cx="30" cy="14.5" r="1.5" fill="#fff"/>
+<circle cx="24" cy="16.5" r="1" fill="#ffd700"/>
+<circle cx="36" cy="16.5" r="1" fill="#ffd700"/>
+<!-- 目 -->
+<ellipse cx="26.5" cy="22" rx="3" ry="3.2" fill="#fff"/>
+<ellipse cx="33.5" cy="22" rx="3" ry="3.2" fill="#fff"/>
+<circle cx="27" cy="22.5" r="2" fill="#1a0a00"/>
+<circle cx="34" cy="22.5" r="2" fill="#1a0a00"/>
+<circle cx="27.7" cy="21.8" r="0.8" fill="#ffd700"/>
+<circle cx="34.7" cy="21.8" r="0.8" fill="#ffd700"/>
+<circle cx="26.2" cy="21.2" r="0.5" fill="#fff" opacity="0.9"/>
+<circle cx="33.2" cy="21.2" r="0.5" fill="#fff" opacity="0.9"/>
+<!-- 口 -->
+<path d="M26,27 Q30,30 34,27" stroke="#b8860b" stroke-width="1.2" fill="none"/>
+<!-- 輝きパーティクル -->
+<circle cx="12" cy="15" r="1" fill="#ffd700" opacity="0.8"/>
+<circle cx="48" cy="15" r="1" fill="#ffd700" opacity="0.8"/>
+<circle cx="8" cy="35" r="0.8" fill="#fff8dc" opacity="0.7"/>
+<circle cx="52" cy="35" r="0.8" fill="#fff8dc" opacity="0.7"/>
+<path d="M10,22 L11.5,20 L13,22 L11.5,24Z" fill="#ffd700" opacity="0.7"/>
+<path d="M47,22 L48.5,20 L50,22 L48.5,24Z" fill="#ffd700" opacity="0.7"/>
+</svg>`
 };
-const RARITIES={common:{label:'COMMON',weight:45},uncommon:{label:'UNCOMMON',weight:30},rare:{label:'RARE',weight:15},epic:{label:'EPIC',weight:7},legendary:{label:'LEGENDARY',weight:2},mythic:{label:'MYTHIC',weight:1},supermythic:{label:'SUPER MYTHIC',weight:0},secret:{label:'⭐SECRET⭐',weight:0}};
+const RARITIES={common:{label:'COMMON',weight:45},uncommon:{label:'UNCOMMON',weight:30},rare:{label:'RARE',weight:15},epic:{label:'EPIC',weight:7},legendary:{label:'LEGENDARY',weight:2},mythic:{label:'MYTHIC',weight:1},supermythic:{label:'SUPER MYTHIC',weight:0},secret:{label:'⭐SECRET⭐',weight:0},divine:{label:'✨DIVINE✨',weight:0}};
 const CHARACTERS=[
 {id:'tralalero',name:'トラッラレロ',rarity:'common',rate:4,desc:'有名なサメ男。ズボンが特徴的。'},
 {id:'bombardino',name:'ボンバルディーノ',rarity:'common',rate:6,desc:'ワニ。軍用機が好き。'},
@@ -498,7 +557,8 @@ const CHARACTERS=[
 {id:'omegaboss',name:'オメガボス',rarity:'mythic',rate:99999,desc:'全てのブレインロットの支配者。⚗️伝説の融合が必要！'},
 {id:'voidgod',name:'ヴォイドゴッド',rarity:'supermythic',rate:499999,desc:'虚空に座する神。コズミックとオメガの間に存在する。⚗️スーパーミシック融合で入手！'},
 {id:'abyssking',name:'アビスキング',rarity:'supermythic',rate:599999,desc:'深淵の支配者。その力はオメガを凌駕する。⚗️スーパーミシック融合で入手！'},
-{id:'omnisecret',name:'オムニシークレット・Ω',rarity:'secret',rate:9999999,desc:'全ての次元を超えた存在。シークレット融合でのみ降臨！変異を纏い、宇宙の全てを支配する。'}
+{id:'omnisecret',name:'オムニシークレット・Ω',rarity:'secret',rate:9999999,desc:'全ての次元を超えた存在。シークレット融合でのみ降臨！変異を纏い、宇宙の全てを支配する。'},
+{id:'divineemperor',name:'神域皇帝 ディバイン',rarity:'divine',rate:99999999,desc:'全てを超越した神域の皇帝。図鑑完全制覇＋変異シークレット5体の合成でのみ降臨する唯一絶対の存在。✨DIVINE FUSION✨'}
 ];
 const FUSION_RECIPES=[
 {id:'cosmicbrain',result:'cosmicbrain',ingredients:[{id:'tantan',count:1},{id:'jellyqueen',count:1},{id:'solarphoenix',count:1}],name:'コズミックブレイン召喚'},
@@ -532,7 +592,7 @@ let state={money:500000,rate:0,baseSlots:8,base:[],inventory:{},invItems:[],shop
 const SAVE_KEY='brainrot_v3';
 let _uidCounter=1;
 function genUid(){return 'u'+(Date.now()%1e9)+'_'+(++_uidCounter);}
-function saveGame(){try{const d={...state,invItems:state.invItems||[],discovered:[...state.discovered],achievements:[...state.achievements],mutations:state.mutations||{},discoveredMutations:[...(state.discoveredMutations||new Set())],shopUpgradeLevel:state.shopUpgradeLevel||0,usedCodes:state.usedCodes||{},admin2Bought:state.admin2Bought||false,admin2PendingFusionMut:state.admin2PendingFusionMut||null,admin2CD:{spawn:admin2CD.spawn,shop:admin2CD.shop,mut:admin2CD.mut},admin2CDSavedAt:Date.now()};localStorage.setItem(SAVE_KEY,JSON.stringify(d));const el=document.getElementById('save-indicator');if(el){el.textContent='💾 セーブ済';el.style.color='var(--accent2)';}}catch(e){}}
+function saveGame(){try{const d={...state,invItems:state.invItems||[],discovered:[...state.discovered],achievements:[...state.achievements],mutations:state.mutations||{},discoveredMutations:[...(state.discoveredMutations||new Set())],shopUpgradeLevel:state.shopUpgradeLevel||0,usedCodes:state.usedCodes||{},admin2Bought:state.admin2Bought||false,admin2PendingFusionMut:state.admin2PendingFusionMut||null,admin2CD:{spawn:admin2CD.spawn,shop:admin2CD.shop,mut:admin2CD.mut},admin2CDSavedAt:Date.now(),divineFused:state.divineFused||false};localStorage.setItem(SAVE_KEY,JSON.stringify(d));const el=document.getElementById('save-indicator');if(el){el.textContent='💾 セーブ済';el.style.color='var(--accent2)';}}catch(e){}}
 function loadGame(){try{
   // v3
   let raw=localStorage.getItem('brainrot_v3');
@@ -547,6 +607,7 @@ function loadGame(){try{
     state.usedCodes=d.usedCodes||{};
     state.admin2Bought=d.admin2Bought||false;
     state.admin2PendingFusionMut=d.admin2PendingFusionMut||null;
+    state.divineFused=d.divineFused||false;
     if(d.admin2CD){const elapsed=d.admin2CDSavedAt?Math.floor((Date.now()-d.admin2CDSavedAt)/1000):0;admin2CD.spawn=Math.max(0,(d.admin2CD.spawn||0)-elapsed);admin2CD.shop=Math.max(0,(d.admin2CD.shop||0)-elapsed);admin2CD.mut=Math.max(0,(d.admin2CD.mut||0)-elapsed);}
     // inventory互換（旧フォーマット併用）
     state.inventory={};state.invItems.forEach(it=>{state.inventory[it.charId]=(state.inventory[it.charId]||0)+1;});
@@ -1167,8 +1228,8 @@ if(superRecipes.length){
 }
 // アップグレード融合
 const upgradeable=[];Object.entries(state.inventory).forEach(([id,count])=>{if(count>=3){const ch=CHARACTERS.find(c=>c.id===id);if(ch&&ch.rarity!=='legendary'&&ch.rarity!=='mythic'&&ch.rarity!=='supermythic'&&ch.rarity!=='secret')upgradeable.push({ch,count});}});
-if(!upgradeable.length){const noUpg=document.createElement('div');noUpg.style.cssText='color:var(--muted);font-size:11px;text-align:center;padding:10px';noUpg.textContent='同じキャラを3体以上持つと融合可能！';superDiv.appendChild(noUpg);renderMythicFusion();renderSecretFusion();return;}
-const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(2,1fr);gap:8px;';upgradeable.forEach(({ch,count})=>{const nextRarity=RARITY_ORDER[RARITY_ORDER.indexOf(ch.rarity)+1];const nextRarityLabel=RARITIES[nextRarity]?.label||'???';const ingMuts=getIngredientMutations(ch.id);const ingMutHtml=ingMuts.length?ingMuts.map(m=>MUTATIONS[m]?`<div style="font-size:7px;font-weight:700;color:${MUTATIONS[m].color}">${MUTATIONS[m].name}</div>`:'').join(''):'';const ingMult=ingMuts.reduce((a,m)=>a*(MUTATIONS[m]?MUTATIONS[m].mult:1),1);const effRate=ch.rate*ingMult;const card=document.createElement('div');card.className='fusion-recipe';card.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><div style="position:relative;flex-shrink:0">${svgChar(ch.id)}<div style="position:absolute;bottom:0;right:0;background:var(--accent);color:#fff;font-size:8px;border-radius:6px;padding:0 3px">×3</div></div><div><div style="font-size:10px;font-weight:700">${ch.name}</div><div style="font-size:8px;color:var(--muted)">所持: ${count}体</div>${ingMuts.length?`<div style="margin-top:2px">${ingMutHtml}<div style="font-size:8px;color:var(--accent3)">${fmtRateSm(effRate)}/s</div></div>`:`<div style="font-size:8px;color:var(--muted)">${fmtRateSm(ch.rate)}/s</div>`}<div style="font-size:8px;margin-top:2px">→ <span class="r-${nextRarity}">${nextRarityLabel}</span>ランダム</div></div></div><button class="fusion-btn" style="margin-top:8px;width:100%" onclick="executeUpgradeFusion('${ch.id}')">⬆️ アップグレード融合</button>`;grid.appendChild(card);});superDiv.appendChild(grid);renderMythicFusion();renderSecretFusion();}
+if(!upgradeable.length){const noUpg=document.createElement('div');noUpg.style.cssText='color:var(--muted);font-size:11px;text-align:center;padding:10px';noUpg.textContent='同じキャラを3体以上持つと融合可能！';superDiv.appendChild(noUpg);renderMythicFusion();renderSecretFusion();renderDivineFusion();return;}
+const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(2,1fr);gap:8px;';upgradeable.forEach(({ch,count})=>{const nextRarity=RARITY_ORDER[RARITY_ORDER.indexOf(ch.rarity)+1];const nextRarityLabel=RARITIES[nextRarity]?.label||'???';const ingMuts=getIngredientMutations(ch.id);const ingMutHtml=ingMuts.length?ingMuts.map(m=>MUTATIONS[m]?`<div style="font-size:7px;font-weight:700;color:${MUTATIONS[m].color}">${MUTATIONS[m].name}</div>`:'').join(''):'';const ingMult=ingMuts.reduce((a,m)=>a*(MUTATIONS[m]?MUTATIONS[m].mult:1),1);const effRate=ch.rate*ingMult;const card=document.createElement('div');card.className='fusion-recipe';card.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><div style="position:relative;flex-shrink:0">${svgChar(ch.id)}<div style="position:absolute;bottom:0;right:0;background:var(--accent);color:#fff;font-size:8px;border-radius:6px;padding:0 3px">×3</div></div><div><div style="font-size:10px;font-weight:700">${ch.name}</div><div style="font-size:8px;color:var(--muted)">所持: ${count}体</div>${ingMuts.length?`<div style="margin-top:2px">${ingMutHtml}<div style="font-size:8px;color:var(--accent3)">${fmtRateSm(effRate)}/s</div></div>`:`<div style="font-size:8px;color:var(--muted)">${fmtRateSm(ch.rate)}/s</div>`}<div style="font-size:8px;margin-top:2px">→ <span class="r-${nextRarity}">${nextRarityLabel}</span>ランダム</div></div></div><button class="fusion-btn" style="margin-top:8px;width:100%" onclick="executeUpgradeFusion('${ch.id}')">⬆️ アップグレード融合</button>`;grid.appendChild(card);});superDiv.appendChild(grid);renderMythicFusion();renderSecretFusion();renderDivineFusion();}
 function executeFusion(recipeId){try{
 const recipe=FUSION_RECIPES.find(r=>r.id===recipeId);if(!recipe)return;
 let canFuse=true;recipe.ingredients.forEach(ing=>{if((state.inventory[ing.id]||0)<ing.count)canFuse=false;});
@@ -1379,8 +1440,109 @@ function executeMythicFusion(charId){
   showToast(`👑 ${ch.name}×3 究極融合 → 変異なし…`);
   checkAchievements();saveGame();
 }
-// renderFusion内でrenderSecretFusionは呼ばれるが、mythicFusion単独呼び出し後も呼ぶ
-function _renderSecretFusionIfNeeded(){renderSecretFusion();}
+function renderDivineFusion(){
+  const div=document.getElementById('divine-fusion');if(!div)return;div.innerHTML='';
+  const divineChar=CHARACTERS.find(c=>c.id==='divineemperor');
+  const DIVINE_COST=500e9; // 500B
+  const NEED_SECRET=5;
+  const NEED_INDEX=53;
+  // 変異付きシークレット所持数
+  const mutSecrets=state.invItems.filter(it=>it.charId==='omnisecret'&&it.muts&&it.muts.length>0);
+  const secretCount=mutSecrets.length;
+  // 図鑑埋め数
+  const discovered=state.discovered?state.discovered.size||[...state.discovered].length:0;
+  const hasGold=state.money>=DIVINE_COST;
+  const hasSecrets=secretCount>=NEED_SECRET;
+  const hasIndex=discovered>=NEED_INDEX;
+  const canFuse=hasSecrets&&hasIndex&&hasGold&&!state.divineFused;
+  const secretSlots=Array.from({length:NEED_SECRET},(_,i)=>{
+    const it=mutSecrets[i];
+    const ok=!!it;
+    const mutLabel=ok?it.muts.map(m=>MUTATIONS[m]?`<div style="font-size:6px;color:${MUTATIONS[m].color};font-weight:900">${MUTATIONS[m].name}</div>`:'').join(''):'';
+    return `<div style="background:${ok?'rgba(255,215,0,0.1)':'rgba(255,255,255,0.03)'};border:1.5px solid ${ok?'#ffd700':'rgba(255,255,255,0.1)'};border-radius:8px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:52px">
+      <div style="width:28px;height:28px;opacity:${ok?1:0.3}">${ok?svgChar('omnisecret'):'<svg viewBox="0 0 60 60"><text x="30" y="42" text-anchor="middle" font-size="36">❓</text></svg>'}</div>
+      <div style="font-size:6px;color:${ok?'#ffd700':'var(--muted)'}">変異付き</div>
+      ${mutLabel}
+    </div>`;
+  }).join('');
+  div.innerHTML=`<div class="fusion-recipe" style="border:2px solid #ffd700;background:linear-gradient(135deg,#0a0800,#1a1000,#0a0500);box-shadow:0 0 30px rgba(255,215,0,0.15)">
+    <div style="text-align:center;margin-bottom:8px">
+      <div style="font-size:13px;font-weight:900;background:linear-gradient(90deg,#fff8dc,#ffd700,#ff8800,#ffd700,#fff8dc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:divine-text 2s linear infinite;letter-spacing:1px">✨ DIVINE FUSION ✨</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:2px">全てを超越した究極の召喚</div>
+    </div>
+    <div style="font-size:9px;font-weight:700;color:#ffd700;margin-bottom:6px">📌 変異付きシークレット × 5体</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;justify-content:center">${secretSlots}</div>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px">
+        <span style="font-size:14px">${hasIndex?'✅':'❌'}</span>
+        <span style="color:${hasIndex?'#44ff88':'var(--muted)'}">図鑑コンプリート（${discovered}/${NEED_INDEX}体）</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px">
+        <span style="font-size:14px">${hasSecrets?'✅':'❌'}</span>
+        <span style="color:${hasSecrets?'#44ff88':'var(--muted)'}">変異付きシークレット（${secretCount}/${NEED_SECRET}体）</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px">
+        <span style="font-size:14px">${hasGold?'✅':'❌'}</span>
+        <span style="color:${hasGold?'#44ff88':'var(--muted)'}">$500B 所持（現在 ${fmtMoney(state.money)}）</span>
+      </div>
+      ${state.divineFused?'<div style="font-size:10px;color:#ffd700;text-align:center;font-weight:900">✨ すでに神域皇帝を降臨済み ✨</div>':''}
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div style="background:linear-gradient(135deg,#1a1200,#2a1a00);border:2px solid #ffd700;border-radius:10px;padding:8px;display:flex;align-items:center;gap:8px;flex:1;animation:divine-glow 1.5s ease-in-out infinite">
+        <div style="animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 12px #ffd700)">${svgChar('divineemperor')}</div>
+        <div>
+          <div style="font-size:10px;font-weight:900;background:linear-gradient(90deg,#fff8dc,#ffd700,#ff8800);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">神域皇帝 ディバイン</div>
+          <div style="font-size:8px;color:#ffd700;font-weight:900">✨DIVINE✨</div>
+          <div style="font-size:9px;color:var(--accent3)">${fmtMoney(divineChar.rate)}/s</div>
+        </div>
+      </div>
+      <button onclick="executeDivineFusion()" ${canFuse?'':'disabled'}
+        style="background:${canFuse?'linear-gradient(135deg,#b8860b,#ffd700,#ff8800)':'rgba(255,255,255,0.05)'};color:${canFuse?'#000':'var(--muted)'};border:none;border-radius:12px;padding:12px 10px;font-size:11px;font-weight:900;cursor:${canFuse?'pointer':'not-allowed'};font-family:'M PLUS Rounded 1c',sans-serif;min-width:80px;${canFuse?'box-shadow:0 0 20px rgba(255,215,0,0.4)':''}">
+        ${canFuse?'✨ 降臨！':'条件未達'}
+      </button>
+    </div>
+  </div>`;
+}
+function executeDivineFusion(){
+  const DIVINE_COST=500e9;
+  const mutSecrets=state.invItems.filter(it=>it.charId==='omnisecret'&&it.muts&&it.muts.length>0);
+  const discovered=state.discovered?state.discovered.size||[...state.discovered].length:0;
+  if(mutSecrets.length<5){showToast('変異付きシークレットが5体必要！');return;}
+  if(discovered<53){showToast('図鑑を全て埋める必要があります！');return;}
+  if(state.money<DIVINE_COST){showToast('$500B 必要！');return;}
+  if(state.divineFused){showToast('すでに神域皇帝を降臨済み！');return;}
+  // 変異付きシークレット5体消費
+  const use=mutSecrets.slice(0,5);
+  const allMuts=[];
+  use.forEach(it=>{
+    it.muts.forEach(m=>{if(!allMuts.includes(m))allMuts.push(m);});
+    removeFromInventoryByUid(it.uid);
+  });
+  state.money-=DIVINE_COST;
+  state.divineFused=true;
+  addToInventory('divineemperor');
+  state.discovered.add('divineemperor');
+  state.stats.totalFusions=(state.stats.totalFusions||0)+1;
+  updateMoneyDisplays();calcRate();renderInventory();renderFusion();
+  const divineChar=CHARACTERS.find(c=>c.id==='divineemperor');
+  openModal(`<div class="modal-header" style="background:linear-gradient(135deg,#0a0800,#1a1000);border-bottom:2px solid #ffd700">
+    <h3 style="background:linear-gradient(90deg,#fff8dc,#ffd700,#ff8800,#ffd700,#fff8dc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:divine-text 2s linear infinite">✨ 神域降臨 ✨</h3>
+    <button class="modal-close" onclick="closeModal()">✕</button>
+  </div>
+  <div style="text-align:center;padding:20px;background:linear-gradient(135deg,#0a0800,#1a1000)">
+    <div style="font-size:80px;animation:float 2s ease-in-out infinite;filter:drop-shadow(0 0 20px #ffd700)">${svgChar('divineemperor')}</div>
+    <div style="font-size:18px;font-weight:900;background:linear-gradient(90deg,#fff8dc,#ffd700,#ff8800);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:8px 0">神域皇帝 ディバイン</div>
+    <div style="font-size:12px;color:#ffd700;margin-bottom:8px;animation:divine-glow 1.5s infinite;letter-spacing:2px">✨ DIVINE ✨</div>
+    <div style="font-size:13px;color:var(--accent3);font-weight:700;margin-bottom:4px">収益: ${fmtMoney(divineChar.rate)}/s</div>
+    <div style="font-size:10px;color:var(--muted);font-style:italic;margin-bottom:12px">${divineChar.desc}</div>
+    <div style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.3);border-radius:10px;padding:10px;font-size:10px;color:#ffd700">
+      全ての試練を乗り越えた者のみが到達できる<br>最高の栄光を手に入れた！
+    </div>
+  </div>`);
+  saveGame();
+  showToast('✨ 神域皇帝 ディバインが降臨した！');
+}
+// ===== DIVINE FUSION END =====
 function initQuests(){state.quests={};DAILY_QUESTS_DEF.forEach(q=>{state.quests[q.id]={progress:0,claimed:false};});}
 function checkQuestProgress(){if(!state.quests||Object.keys(state.quests).length===0)initQuests();let changed=false;DAILY_QUESTS_DEF.forEach(q=>{if(state.quests[q.id]?.claimed)return;let prog=state.quests[q.id]?.progress||0;let newProg=prog;if(q.type==='buy')newProg=Math.min(q.target,state.stats.totalBuys||0);if(q.type==='trade')newProg=Math.min(q.target,state.stats.totalTrades||0);if(q.type==='earn')newProg=Math.min(q.target,state.stats.totalEarned||0);if(q.type==='discover')newProg=Math.min(q.target,state.stats.sessionDiscovers||0);if(q.type==='base')newProg=Math.min(q.target,state.base.length||0);if(q.type==='fusion')newProg=Math.min(q.target,state.stats.totalFusions||0);if(newProg!==prog){state.quests[q.id].progress=newProg;changed=true;}});if(changed)renderQuests();updateQuestBadge();}
 function updateQuestBadge(){const claimable=DAILY_QUESTS_DEF.filter(q=>{const qs=state.quests[q.id];return qs&&!qs.claimed&&qs.progress>=q.target;}).length;const btn=document.getElementById('nav-quest');let badge=btn.querySelector('.quest-badge');if(claimable>0){if(!badge){badge=document.createElement('div');badge.className='quest-badge';btn.appendChild(badge);}badge.textContent=claimable;}else if(badge)badge.remove();}
