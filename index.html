@@ -978,20 +978,37 @@ if(!state.mutations)state.mutations={};
 delete state.mutations[b.charId+'_'+slot];
 state.base.splice(idx,1);calcRate();renderBase();renderInventory();closeModal();showToast(`↩ ${ch.name}を回収した`);saveGame();}}
 function openPlaceModal(slot){const available=state.invItems?state.invItems.filter(it=>(state.inventory[it.charId]||0)>0):[];if(!available.length){showToast('📦 配置できるキャラがいない');return;}
-// uidごとにカード表示
 let html=`<div class="modal-header"><h3>キャラを配置</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body" style="width:100%"><div class="pick-grid">`;
-// 変異なしはcharId単位でまとめ、変異ありは個別
-const noMutSeen=new Set();
+// 変異ありは個別、変異なしはcharId単位でまとめ（labMutsが最大のものを代表に）
+const noMutRepresentative=new Map(); // charId → it (labMutsが最大)
+state.invItems.forEach(it=>{
+  if(!CHARACTERS.find(x=>x.id===it.charId))return;
+  if(it.muts&&it.muts.length){
+    // 変異ありは個別表示（後で追加）
+  } else {
+    const cur=noMutRepresentative.get(it.charId);
+    if(!cur||(it.labMuts||0)>(cur.labMuts||0)){
+      noMutRepresentative.set(it.charId,it);
+    }
+  }
+});
+// 変異ありキャラ（個別）
 state.invItems.forEach(it=>{
   if(!CHARACTERS.find(x=>x.id===it.charId))return;
   const ch=CHARACTERS.find(x=>x.id===it.charId);
   if(it.muts&&it.muts.length){
     const mutBadges=it.muts.map(m=>MUTATIONS[m]?`<div style="font-size:5px;color:${MUTATIONS[m].color};font-weight:900">${MUTATIONS[m].name}</div>`:'').join('');
-    html+=`<div class="pick-card" onclick="placeCharByUid('${it.uid}',${slot})">${svgChar(it.charId)}<div class="pcn">${ch.name}</div><div class="pcr r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div>${mutBadges}</div>`;
-  } else if(!noMutSeen.has(it.charId)){
-    noMutSeen.add(it.charId);
-    html+=`<div class="pick-card" onclick="placeCharByUid('${it.uid}',${slot})">${svgChar(it.charId)}<div class="pcn">${ch.name}</div><div class="pcr r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div></div>`;
+    const labMuts=it.labMuts||0;
+    const labBadge=`<div style="font-size:5px;color:${labMuts>=getDimMutLimit()?'#ff4444':'#44ff88'};font-weight:700">ラボ残${getDimMutLimit()-labMuts}回</div>`;
+    html+=`<div class="pick-card" onclick="placeCharByUid('${it.uid}',${slot})">${svgChar(it.charId)}<div class="pcn">${ch.name}</div><div class="pcr r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div>${mutBadges}${labBadge}</div>`;
   }
+});
+// 変異なしキャラ（代表uid、labMuts最大）
+noMutRepresentative.forEach((it,charId)=>{
+  const ch=CHARACTERS.find(x=>x.id===charId);if(!ch)return;
+  const labMuts=it.labMuts||0;
+  const labBadge=`<div style="font-size:5px;color:${labMuts>=getDimMutLimit()?'#ff4444':'#44ff88'};font-weight:700">ラボ残${getDimMutLimit()-labMuts}回</div>`;
+  html+=`<div class="pick-card" onclick="placeCharByUid('${it.uid}',${slot})">${svgChar(charId)}<div class="pcn">${ch.name}</div><div class="pcr r-${ch.rarity}">${RARITIES[ch.rarity].label.substring(0,3)}</div>${labBadge}</div>`;
 });
 html+=`</div></div>`;openModal(html);}
 function placeChar(charId,slot){
@@ -1224,18 +1241,20 @@ function placeToFreeSlotByUid(uid){const it=state.invItems.find(x=>x.uid===uid);
 function placeCharByUid(uid,slot){
   const it=state.invItems.find(x=>x.uid===uid);if(!it){showToast('キャラが見つからない');return;}
   if(state.base.find(b=>b.slot===slot))return;
+  // removeの前にlabMutsを含む全データをコピー
+  const charId=it.charId;
+  const muts=[...(it.muts||[])];
+  const labMuts=it.labMuts||0;
   removeFromInventoryByUid(uid);
-  // labMutsを含むスナップショットをbaseエントリに保存
-  state.base.push({charId:it.charId,slot,uid:it.uid,labMuts:it.labMuts||0});
-  // 変異を基地スロットに設定
-  if(it.muts&&it.muts.length){
+  state.base.push({charId,slot,labMuts});
+  if(muts.length){
     if(!state.mutations)state.mutations={};
-    state.mutations[it.charId+'_'+slot]=it.muts;
+    state.mutations[charId+'_'+slot]=muts;
     if(!state.discoveredMutations)state.discoveredMutations=new Set();
-    it.muts.forEach(m=>state.discoveredMutations.add(m));
+    muts.forEach(m=>state.discoveredMutations.add(m));
   }
   calcRate();renderBase();renderInventory();closeModal();
-  const ch=CHARACTERS.find(x=>x.id===it.charId);showToast(`✅ ${ch.name}を配置した！`);checkQuestProgress();saveGame();
+  const ch=CHARACTERS.find(x=>x.id===charId);showToast(`✅ ${ch.name}を配置した！`);checkQuestProgress();saveGame();
 }
 let tradeOfferFilter='all';
 function renderTrade(){
@@ -1969,14 +1988,14 @@ function adminRefreshShop(){refreshShop();state.shopTimer=180;updateTimerDisplay
 // ===== DIMENSIONAL RESEARCH LAB =====
 const QA = 1e15; // 1Qa
 const DIM_RESEARCHES = [
-  {id:'dimlab_rate1',   name:'次元加速 Lv1',   icon:'⚡',    desc:'全キャラの収益 +50%',                          cost:1*QA,   costLabel:'$1Qa',   effect:'rate_multi',     value:1.5, req:null},
-  {id:'dimlab_rate2',   name:'次元加速 Lv2',   icon:'⚡⚡',   desc:'全キャラの収益 さらに×2',                     cost:5*QA,   costLabel:'$5Qa',   effect:'rate_multi',     value:2.0, req:'dimlab_rate1'},
-  {id:'dimlab_rate3',   name:'次元加速 Lv3',   icon:'⚡⚡⚡',  desc:'全キャラの収益 さらに×3',                     cost:50*QA,  costLabel:'$50Qa',  effect:'rate_multi',     value:3.0, req:'dimlab_rate2'},
-  {id:'dimlab_mutslot', name:'変異スロット拡張', icon:'🧬',    desc:'変異ラボの付与上限を2→3回に増加',              cost:3*QA,   costLabel:'$3Qa',   effect:'mut_slot',       value:3,   req:null},
-  {id:'dimlab_shopref', name:'ショップ高速化',   icon:'🔄',   desc:'ショップリフレッシュ間隔 3分→90秒に短縮',       cost:2*QA,   costLabel:'$2Qa',   effect:'shop_speed',     value:90,  req:null},
-  {id:'dimlab_gacha1',  name:'ガチャ割引',       icon:'🎰',   desc:'ガチャのコスト 100B→50Bに半額',               cost:10*QA,  costLabel:'$10Qa',  effect:'gacha_discount', value:0.5, req:null},
-  {id:'dimlab_pity1',   name:'神炎天井短縮',     icon:'🔥',   desc:'神炎鳳凰の天井 150→100回に短縮',              cost:20*QA,  costLabel:'$20Qa',  effect:'pity1_reduce',   value:100, req:null},
-  {id:'dimlab_income1', name:'次元所得保証',     icon:'💎',   desc:'収入が0の時でも$1T/sを保証',                  cost:500*QA, costLabel:'$500Qa', effect:'min_rate',       value:1e12,req:null},
+  {id:'dimlab_rate1',   name:'次元加速 Lv1',   icon:'⚡',    desc:'全キャラの収益 +50%',                      cost:10*QA,    costLabel:'$10Qa',    effect:'rate_multi',     value:1.5, req:null},
+  {id:'dimlab_rate2',   name:'次元加速 Lv2',   icon:'⚡⚡',   desc:'全キャラの収益 さらに×2',                 cost:100*QA,   costLabel:'$100Qa',   effect:'rate_multi',     value:2.0, req:'dimlab_rate1'},
+  {id:'dimlab_rate3',   name:'次元加速 Lv3',   icon:'⚡⚡⚡',  desc:'全キャラの収益 さらに×3',                 cost:1000*QA,  costLabel:'$1000Qa',  effect:'rate_multi',     value:3.0, req:'dimlab_rate2'},
+  {id:'dimlab_mutslot', name:'変異スロット拡張', icon:'🧬',    desc:'変異ラボの付与上限を2→3回に増加',          cost:50*QA,    costLabel:'$50Qa',    effect:'mut_slot',       value:3,   req:null},
+  {id:'dimlab_shopref', name:'ショップ高速化',   icon:'🔄',   desc:'ショップリフレッシュ間隔 3分→90秒に短縮',   cost:30*QA,    costLabel:'$30Qa',    effect:'shop_speed',     value:90,  req:null},
+  {id:'dimlab_gacha1',  name:'ガチャ割引',       icon:'🎰',   desc:'ガチャのコスト 100B→50Bに半額',           cost:200*QA,   costLabel:'$200Qa',   effect:'gacha_discount', value:0.5, req:null},
+  {id:'dimlab_pity1',   name:'神炎天井短縮',     icon:'🔥',   desc:'神炎鳳凰の天井 150→100回に短縮',          cost:500*QA,   costLabel:'$500Qa',   effect:'pity1_reduce',   value:100, req:null},
+  {id:'dimlab_income1', name:'次元所得保証',     icon:'💎',   desc:'収入が0の時でも$1T/sを保証',              cost:5000*QA,  costLabel:'$5000Qa',  effect:'min_rate',       value:1e12,req:null},
 ];
 
 function isDimResearched(id){return !!(state.dimResearch&&state.dimResearch[id]);}
