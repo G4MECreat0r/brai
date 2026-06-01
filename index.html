@@ -170,7 +170,7 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
   <button class="nav-btn" onclick="showPage('inventory')" id="nav-inventory"><span class="icon">🎒</span>所持</button>
   <button class="nav-btn" onclick="showPage('trade')" id="nav-trade"><span class="icon">🔄</span>トレード</button>
   <button class="nav-btn" onclick="showPage('fusion')" id="nav-fusion"><span class="icon">⚗️</span>融合</button>
-  <button class="nav-btn" onclick="showPage('quest')" id="nav-quest"><span class="icon">📋</span>クエスト</button>
+  <button class="nav-btn" onclick="showPage('gacha')" id="nav-gacha"><span class="icon">🎰</span>ガチャ</button>
   <button class="nav-btn" onclick="showPage('index')" id="nav-index"><span class="icon">📖</span>図鑑</button>
   <button class="nav-btn" onclick="adminPromptPassword(openAdminPanel)" id="nav-admin"><span class="icon">🔐</span>管理</button>
   <button class="nav-btn" onclick="showPage('admin2')" id="nav-admin2"><span class="icon">👑</span>管理者</button>
@@ -190,6 +190,15 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
   <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
     <div style="font-size:11px;color:var(--muted)">スロット拡張</div>
     <button class="expand-btn" id="expand-btn" onclick="expandBase()">＋スロット追加</button>
+  </div>
+  <!-- クエスト (基地ページ最下部) -->
+  <div class="quest-section" style="margin-top:4px">
+    <div class="quest-title">📋 クエスト</div>
+    <div id="daily-quests"></div>
+  </div>
+  <div class="quest-section">
+    <div class="quest-title">🏆 実績</div>
+    <div class="achievement-grid" id="achievements"></div>
   </div>
 </div>
 <div class="page" id="page-shop">
@@ -303,17 +312,53 @@ body{background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c',sans
     <div id="divine-fusion"></div>
   </div>
 </div>
-<div class="page" id="page-quest">
+<div class="page" id="page-gacha">
   <div class="money-bar">
     <div><div class="label">💰 所持金</div><div class="money-val" id="money-display6">$0</div></div>
+    <div style="text-align:right"><div class="label">収入</div><div class="money-rate" id="rate-display-gacha">$0/s</div></div>
   </div>
-  <div class="quest-section">
-    <div class="quest-title">📋 クエスト</div>
-    <div id="daily-quests"></div>
-  </div>
-  <div class="quest-section">
-    <div class="quest-title">🏆 実績</div>
-    <div class="achievement-grid" id="achievements"></div>
+  <!-- ガチャメイン -->
+  <div style="background:linear-gradient(135deg,#0a0800,#1a1000,#0a0005);border:2px solid #ffd700;border-radius:14px;padding:12px">
+    <div style="font-size:14px;font-weight:900;background:linear-gradient(90deg,#fff8dc,#ffd700,#ff8800,#cc44ff,#ffd700,#fff8dc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:divine-text 2s linear infinite;text-align:center;letter-spacing:2px;margin-bottom:4px">🎰 ディバインガチャ 🎰</div>
+    <div style="font-size:10px;color:var(--muted);text-align:center;margin-bottom:10px">1回 <span style="color:#ffd700;font-weight:900">$100B</span> ／ ディバインキャラが出る可能性！</div>
+    <!-- 天井カウンター -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="background:#1a1000;border:1px solid #ffd700;border-radius:10px;padding:8px;text-align:center">
+        <div style="font-size:9px;color:var(--muted)">神炎鳳凰 天井</div>
+        <div style="font-size:16px;font-weight:900;color:#ff6600" id="gacha-pity1-display">0 / 150</div>
+        <div style="font-size:8px;color:#ff6600">150回で確定！</div>
+      </div>
+      <div style="background:#1a0030;border:1px solid #aa44ff;border-radius:10px;padding:8px;text-align:center">
+        <div style="font-size:9px;color:var(--muted)">魔神大帝 天井</div>
+        <div style="font-size:16px;font-weight:900;color:#cc44ff" id="gacha-pity2-display">0 / 200</div>
+        <div style="font-size:8px;color:#cc44ff">200回で確定！</div>
+      </div>
+    </div>
+    <!-- ガチャボタン -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <button onclick="executeGacha(1)" id="gacha-btn-1"
+        style="background:linear-gradient(135deg,#b8860b,#ffd700,#ff8800);color:#000;border:none;border-radius:12px;padding:12px 8px;font-size:12px;font-weight:900;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;transition:.2s">
+        🎰 1回<br><span style="font-size:9px">$100B</span>
+      </button>
+      <button onclick="executeGacha(10)" id="gacha-btn-10"
+        style="background:linear-gradient(135deg,#550088,#aa44ff,#cc00ff);color:#fff;border:none;border-radius:12px;padding:12px 8px;font-size:12px;font-weight:900;cursor:pointer;font-family:'M PLUS Rounded 1c',sans-serif;transition:.2s">
+        🎰 10回<br><span style="font-size:9px">$1T</span>
+      </button>
+    </div>
+    <!-- 排出率表 -->
+    <div style="background:#0a0a18;border:1px solid #2a2a50;border-radius:10px;padding:10px;margin-bottom:8px">
+      <div style="font-size:10px;font-weight:900;color:#ffd700;margin-bottom:6px">📊 排出率</div>
+      <div style="display:flex;flex-direction:column;gap:4px;font-size:9px">
+        <div style="display:flex;justify-content:space-between"><span class="r-epic">EPIC</span><span style="color:var(--muted)">50%</span></div>
+        <div style="display:flex;justify-content:space-between"><span class="r-legendary">LEGENDARY</span><span style="color:var(--muted)">30%</span></div>
+        <div style="display:flex;justify-content:space-between"><span class="r-mythic">MYTHIC</span><span style="color:var(--muted)">15%</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:#ff8800;font-weight:900">SUPER MYTHIC</span><span style="color:var(--muted)">2%</span></div>
+        <div style="display:flex;justify-content:space-between"><span class="r-divine">神炎鳳凰 フェニクシア</span><span style="color:#ff6600;font-weight:900">3%</span></div>
+        <div style="display:flex;justify-content:space-between"><span class="r-divine">魔神大帝 アビゾス</span><span style="color:#cc44ff;font-weight:900">0.1%</span></div>
+      </div>
+    </div>
+    <!-- ガチャ結果 -->
+    <div id="gacha-result-area"></div>
   </div>
 </div>
 <div class="page" id="page-index">
@@ -453,6 +498,64 @@ omegaboss:`<svg viewBox="0 0 60 60"><defs><radialGradient id="og" cx="50%" cy="3
 voidgod:`<svg viewBox="0 0 60 60"><defs><radialGradient id="vgg" cx="50%" cy="40%"><stop offset="0%" stop-color="#cc88ff"/><stop offset="50%" stop-color="#440088"/><stop offset="100%" stop-color="#000011"/></radialGradient></defs><circle cx="30" cy="30" r="26" fill="url(#vgg)"/><path d="M30,4 L34,16 L46,12 L38,22 L50,26 L38,30 L46,42 L34,38 L30,50 L26,38 L14,42 L22,30 L10,26 L22,22 L14,12 L26,16Z" fill="#aa44ff" opacity=".5"/><circle cx="23" cy="27" r="5" fill="#fff"/><circle cx="24.5" cy="28" r="2.5" fill="#220055"/><circle cx="37" cy="27" r="5" fill="#fff"/><circle cx="38.5" cy="28" r="2.5" fill="#220055"/><path d="M22,35 Q30,40 38,35" stroke="#ff88ff" stroke-width="2.5" fill="none"/><circle cx="30" cy="30" r="8" fill="none" stroke="#cc44ff" stroke-width="1" opacity=".6"/><circle cx="30" cy="30" r="14" fill="none" stroke="#8822ff" stroke-width="0.8" opacity=".4"/></svg>`,
 abyssking:`<svg viewBox="0 0 60 60"><defs><radialGradient id="akg" cx="45%" cy="30%"><stop offset="0%" stop-color="#ffaa44"/><stop offset="40%" stop-color="#cc4400"/><stop offset="100%" stop-color="#1a0000"/></radialGradient></defs><rect x="4" y="4" width="52" height="52" rx="8" fill="url(#akg)"/><path d="M30,2 L36,14 L50,10 L42,22 L56,26 L42,30 L50,44 L36,40 L30,54 L24,40 L10,44 L18,30 L4,26 L18,22 L10,10 L24,14Z" fill="#ff6600" opacity=".4"/><circle cx="22" cy="26" r="5" fill="#ffffaa"/><circle cx="23.5" cy="27" r="2.5" fill="#8b0000"/><circle cx="38" cy="26" r="5" fill="#ffffaa"/><circle cx="39.5" cy="27" r="2.5" fill="#8b0000"/><path d="M22,35 Q30,41 38,35" stroke="#ffaa00" stroke-width="3" fill="none"/><path d="M24,16 L22,8 L28,14 L30,6 L32,14 L38,8 L36,16" fill="#ffcc00" stroke="#ff8800" stroke-width="1"/></svg>`,
 omnisecret:`<svg viewBox="0 0 60 60"><defs><radialGradient id="osg" cx="50%" cy="40%"><stop offset="0%" stop-color="#ffffff"/><stop offset="25%" stop-color="#00ffff"/><stop offset="60%" stop-color="#ff00ff"/><stop offset="100%" stop-color="#000033"/></radialGradient><radialGradient id="osg2" cx="50%" cy="50%"><stop offset="0%" stop-color="#ffff00"/><stop offset="100%" stop-color="#ff00ff" stop-opacity="0"/></radialGradient></defs><circle cx="30" cy="30" r="28" fill="url(#osg)"/><circle cx="30" cy="30" r="20" fill="url(#osg2)" opacity=".5"/><path d="M30,2 L33,12 L42,6 L38,16 L48,14 L42,22 L52,24 L44,28 L52,34 L42,34 L46,44 L36,40 L34,50 L30,42 L26,50 L24,40 L14,44 L18,34 L8,34 L16,28 L8,24 L18,22 L12,14 L22,16 L18,6 L27,12Z" fill="#fff" opacity=".3"/><circle cx="23" cy="27" r="5.5" fill="#fff"/><circle cx="24.5" cy="28" r="2.8" fill="#00aaff"/><circle cx="26" cy="26.5" r="1" fill="#fff"/><circle cx="37" cy="27" r="5.5" fill="#fff"/><circle cx="38.5" cy="28" r="2.8" fill="#ff00aa"/><circle cx="40" cy="26.5" r="1" fill="#fff"/><path d="M22,36 Q30,43 38,36" stroke="#ffff00" stroke-width="3" fill="none"/><path d="M30,6 L30,2 M30,58 L30,54 M6,30 L2,30 M58,30 L54,30" stroke="#00ffff" stroke-width="1.5" opacity=".8"/></svg>`,
+divinephoenix:`<svg viewBox="0 0 60 60"><defs><radialGradient id="dpbg" cx="50%" cy="35%"><stop offset="0%" stop-color="#fffbe0"/><stop offset="30%" stop-color="#ff8800"/><stop offset="70%" stop-color="#ff3300"/><stop offset="100%" stop-color="#1a0000"/></radialGradient><linearGradient id="dpwing" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffcc00"/><stop offset="50%" stop-color="#ff4400"/><stop offset="100%" stop-color="#ff0000" stop-opacity="0.2"/></linearGradient><radialGradient id="dpglow" cx="50%" cy="50%"><stop offset="0%" stop-color="#ffcc00" stop-opacity="0.8"/><stop offset="100%" stop-color="#ff4400" stop-opacity="0"/></radialGradient></defs>
+<circle cx="30" cy="30" r="29" fill="url(#dpglow)" opacity="0.6"/>
+<circle cx="30" cy="30" r="26" fill="url(#dpbg)"/>
+<path d="M30,28 Q8,10 2,20 Q8,14 16,22 Q8,16 14,28Z" fill="url(#dpwing)" opacity="0.9"/>
+<path d="M30,28 Q52,10 58,20 Q52,14 44,22 Q52,16 46,28Z" fill="url(#dpwing)" opacity="0.9"/>
+<path d="M30,30 Q6,18 0,30 Q6,22 14,30Z" fill="#ff6600" opacity="0.6"/>
+<path d="M30,30 Q54,18 60,30 Q54,22 46,30Z" fill="#ff6600" opacity="0.6"/>
+<path d="M22,10 L18,2 L26,8 L30,0 L34,8 L42,2 L38,10 L30,6Z" fill="#ffcc00"/>
+<path d="M22,10 L18,2 L26,8 L30,0 L34,8 L42,2 L38,10 L30,6Z" fill="#fff" opacity="0.3"/>
+<ellipse cx="30" cy="36" rx="10" ry="11" fill="#fff8e0"/>
+<ellipse cx="30" cy="35" rx="8" ry="9" fill="#ffe8b0"/>
+<path d="M22,30 Q30,27 38,30 L36,42 Q30,45 24,42Z" fill="#ff6600" opacity="0.85"/>
+<path d="M25,30 Q30,28 35,30 L34,40 Q30,43 26,40Z" fill="#ffe0aa"/>
+<path d="M30,31 L31.5,35 L36,35 L32.5,37.5 L34,42 L30,39.5 L26,42 L27.5,37.5 L24,35 L28.5,35Z" fill="#ff4400" opacity="0.95"/>
+<ellipse cx="30" cy="21" rx="8.5" ry="9" fill="#fff8e0"/>
+<path d="M21.5,13 L22,17 L25,14 L27,17.5 L30,13.5 L33,17.5 L35,14 L38,17 L38.5,13 L36,15 L33,12 L30,15 L27,12 L24,15Z" fill="#ffcc00"/>
+<ellipse cx="26.5" cy="22" rx="3" ry="3.2" fill="#fff"/>
+<ellipse cx="33.5" cy="22" rx="3" ry="3.2" fill="#fff"/>
+<circle cx="27" cy="22.5" r="2" fill="#1a0000"/>
+<circle cx="34" cy="22.5" r="2" fill="#1a0000"/>
+<circle cx="27.7" cy="21.8" r="0.8" fill="#ff6600"/>
+<circle cx="34.7" cy="21.8" r="0.8" fill="#ff6600"/>
+<path d="M26,27 Q30,30 34,27" stroke="#cc4400" stroke-width="1.2" fill="none"/>
+<circle cx="10" cy="14" r="1.2" fill="#ffcc00" opacity="0.9"/>
+<circle cx="50" cy="14" r="1.2" fill="#ffcc00" opacity="0.9"/>
+<path d="M8,22 L9.5,20 L11,22 L9.5,24Z" fill="#ff6600" opacity="0.8"/>
+<path d="M49,22 L50.5,20 L52,22 L50.5,24Z" fill="#ff6600" opacity="0.8"/>
+</svg>`,
+divinedemon:`<svg viewBox="0 0 60 60"><defs><radialGradient id="ddbg" cx="50%" cy="35%"><stop offset="0%" stop-color="#cc44ff"/><stop offset="30%" stop-color="#660099"/><stop offset="70%" stop-color="#220033"/><stop offset="100%" stop-color="#000000"/></radialGradient><linearGradient id="ddwing" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#aa00ff"/><stop offset="50%" stop-color="#550088"/><stop offset="100%" stop-color="#000000" stop-opacity="0.3"/></linearGradient><radialGradient id="ddglow" cx="50%" cy="50%"><stop offset="0%" stop-color="#cc44ff" stop-opacity="0.8"/><stop offset="100%" stop-color="#440066" stop-opacity="0"/></radialGradient></defs>
+<circle cx="30" cy="30" r="29" fill="url(#ddglow)" opacity="0.7"/>
+<circle cx="30" cy="30" r="26" fill="url(#ddbg)"/>
+<path d="M18,8 L10,2 L16,12 L8,10 L16,18Z" fill="#cc44ff"/>
+<path d="M42,8 L50,2 L44,12 L52,10 L44,18Z" fill="#cc44ff"/>
+<path d="M30,28 Q10,16 4,26 Q10,18 18,26 Q10,20 16,30Z" fill="url(#ddwing)" opacity="0.9"/>
+<path d="M30,28 Q50,16 56,26 Q50,18 42,26 Q50,20 44,30Z" fill="url(#ddwing)" opacity="0.9"/>
+<path d="M30,30 Q8,20 2,32 Q8,24 16,32Z" fill="#660099" opacity="0.6"/>
+<path d="M30,30 Q52,20 58,32 Q52,24 44,32Z" fill="#660099" opacity="0.6"/>
+<ellipse cx="30" cy="36" rx="10" ry="12" fill="#1a0030"/>
+<ellipse cx="30" cy="35" rx="8" ry="10" fill="#220044"/>
+<path d="M22,30 Q30,26 38,30 L36,43 Q30,47 24,43Z" fill="#880088" opacity="0.9"/>
+<path d="M25,30 Q30,27 35,30 L34,41 Q30,44 26,41Z" fill="#440055"/>
+<path d="M30,31 L31.5,35 L36,35 L32.5,37.5 L34,42 L30,39.5 L26,42 L27.5,37.5 L24,35 L28.5,35Z" fill="#cc44ff" opacity="0.95"/>
+<ellipse cx="30" cy="21" rx="8.5" ry="9" fill="#1a0030"/>
+<path d="M22,14 L18,6 L24,10 L28,4 L30,10 L32,4 L36,10 L42,6 L38,14" fill="#aa00cc" stroke="#cc44ff" stroke-width="0.8"/>
+<ellipse cx="26.5" cy="22" rx="3.2" ry="3.5" fill="#cc88ff"/>
+<ellipse cx="33.5" cy="22" rx="3.2" ry="3.5" fill="#cc88ff"/>
+<circle cx="27" cy="22.5" r="2.2" fill="#110022"/>
+<circle cx="34" cy="22.5" r="2.2" fill="#110022"/>
+<circle cx="27.5" cy="21.8" r="0.9" fill="#ff00ff"/>
+<circle cx="34.5" cy="21.8" r="0.9" fill="#ff00ff"/>
+<path d="M26,27 Q30,31 34,27" stroke="#aa00ff" stroke-width="1.5" fill="none"/>
+<circle cx="30" cy="30" r="10" fill="none" stroke="#aa00ff" stroke-width="0.8" opacity="0.5"/>
+<circle cx="30" cy="30" r="18" fill="none" stroke="#660088" stroke-width="0.6" opacity="0.3"/>
+<circle cx="10" cy="16" r="1.2" fill="#cc44ff" opacity="0.9"/>
+<circle cx="50" cy="16" r="1.2" fill="#cc44ff" opacity="0.9"/>
+<path d="M6,24 L7.5,22 L9,24 L7.5,26Z" fill="#aa00ff" opacity="0.8"/>
+<path d="M51,24 L52.5,22 L54,24 L52.5,26Z" fill="#aa00ff" opacity="0.8"/>
+</svg>`,
 divineemperor:`<svg viewBox="0 0 60 60"><defs><radialGradient id="dvbg" cx="50%" cy="35%"><stop offset="0%" stop-color="#fffbe0"/><stop offset="30%" stop-color="#ffd700"/><stop offset="65%" stop-color="#b8860b"/><stop offset="100%" stop-color="#1a0a00"/></radialGradient><radialGradient id="dvglow" cx="50%" cy="50%"><stop offset="0%" stop-color="#fff9c4" stop-opacity="0.9"/><stop offset="100%" stop-color="#ffd700" stop-opacity="0"/></radialGradient><linearGradient id="dvcrown" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="50%" stop-color="#ffd700"/><stop offset="100%" stop-color="#ff8800"/></linearGradient><linearGradient id="dvwing" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffd700" stop-opacity="0.9"/><stop offset="100%" stop-color="#ff4400" stop-opacity="0.3"/></linearGradient></defs>
 <!-- オーラ -->
 <circle cx="30" cy="30" r="29" fill="url(#dvglow)" opacity="0.5"/>
@@ -558,7 +661,9 @@ const CHARACTERS=[
 {id:'voidgod',name:'ヴォイドゴッド',rarity:'supermythic',rate:499999,desc:'虚空に座する神。コズミックとオメガの間に存在する。⚗️スーパーミシック融合で入手！'},
 {id:'abyssking',name:'アビスキング',rarity:'supermythic',rate:599999,desc:'深淵の支配者。その力はオメガを凌駕する。⚗️スーパーミシック融合で入手！'},
 {id:'omnisecret',name:'オムニシークレット・Ω',rarity:'secret',rate:9999999,desc:'全ての次元を超えた存在。シークレット融合でのみ降臨！変異を纏い、宇宙の全てを支配する。'},
-{id:'divineemperor',name:'神域皇帝 ディバイン',rarity:'divine',rate:99999999,desc:'全てを超越した神域の皇帝。図鑑完全制覇＋変異シークレット5体の合成でのみ降臨する唯一絶対の存在。✨DIVINE FUSION✨'}
+{id:'divineemperor',name:'神域皇帝 ディバイン',rarity:'divine',rate:99999999,desc:'全てを超越した神域の皇帝。図鑑完全制覇＋変異シークレット5体の合成でのみ降臨する唯一絶対の存在。✨DIVINE FUSION✨'},
+{id:'divinephoenix',name:'神炎鳳凰 フェニクシア',rarity:'divine',rate:150000000,desc:'神域の炎を纏う不死の鳳凰。ガチャで3%の確率で降臨する。世界を焼き尽くす究極の炎を持つ。✨GACHA DIVINE✨'},
+{id:'divinedemon',name:'魔神大帝 アビゾス',rarity:'divine',rate:500000000,desc:'神域を超えた魔の頂点。ガチャで0.1%の超低確率で降臨する伝説の存在。宇宙の終焉を司る。✨ULTRA RARE DIVINE✨'}
 ];
 const FUSION_RECIPES=[
 {id:'cosmicbrain',result:'cosmicbrain',ingredients:[{id:'tantan',count:1},{id:'jellyqueen',count:1},{id:'solarphoenix',count:1}],name:'コズミックブレイン召喚'},
@@ -592,7 +697,7 @@ let state={money:500000,rate:0,baseSlots:8,base:[],inventory:{},invItems:[],shop
 const SAVE_KEY='brainrot_v3';
 let _uidCounter=1;
 function genUid(){return 'u'+(Date.now()%1e9)+'_'+(++_uidCounter);}
-function saveGame(){try{const d={...state,invItems:state.invItems||[],discovered:[...state.discovered],achievements:[...state.achievements],mutations:state.mutations||{},discoveredMutations:[...(state.discoveredMutations||new Set())],shopUpgradeLevel:state.shopUpgradeLevel||0,usedCodes:state.usedCodes||{},admin2Bought:state.admin2Bought||false,admin2PendingFusionMut:state.admin2PendingFusionMut||null,admin2CD:{spawn:admin2CD.spawn,shop:admin2CD.shop,mut:admin2CD.mut},admin2CDSavedAt:Date.now(),divineFused:state.divineFused||false};localStorage.setItem(SAVE_KEY,JSON.stringify(d));const el=document.getElementById('save-indicator');if(el){el.textContent='💾 セーブ済';el.style.color='var(--accent2)';}}catch(e){}}
+function saveGame(){try{const d={...state,invItems:state.invItems||[],discovered:[...state.discovered],achievements:[...state.achievements],mutations:state.mutations||{},discoveredMutations:[...(state.discoveredMutations||new Set())],shopUpgradeLevel:state.shopUpgradeLevel||0,usedCodes:state.usedCodes||{},admin2Bought:state.admin2Bought||false,admin2PendingFusionMut:state.admin2PendingFusionMut||null,admin2CD:{spawn:admin2CD.spawn,shop:admin2CD.shop,mut:admin2CD.mut},admin2CDSavedAt:Date.now(),divineFused:state.divineFused||false,gachaPity1:state.gachaPity1||0,gachaPity2:state.gachaPity2||0};localStorage.setItem(SAVE_KEY,JSON.stringify(d));const el=document.getElementById('save-indicator');if(el){el.textContent='💾 セーブ済';el.style.color='var(--accent2)';}}catch(e){}}
 function loadGame(){try{
   // v3
   let raw=localStorage.getItem('brainrot_v3');
@@ -608,6 +713,8 @@ function loadGame(){try{
     state.admin2Bought=d.admin2Bought||false;
     state.admin2PendingFusionMut=d.admin2PendingFusionMut||null;
     state.divineFused=d.divineFused||false;
+    state.gachaPity1=d.gachaPity1||0;
+    state.gachaPity2=d.gachaPity2||0;
     if(d.admin2CD){const elapsed=d.admin2CDSavedAt?Math.floor((Date.now()-d.admin2CDSavedAt)/1000):0;admin2CD.spawn=Math.max(0,(d.admin2CD.spawn||0)-elapsed);admin2CD.shop=Math.max(0,(d.admin2CD.shop||0)-elapsed);admin2CD.mut=Math.max(0,(d.admin2CD.mut||0)-elapsed);}
     // inventory互換（旧フォーマット併用）
     state.inventory={};state.invItems.forEach(it=>{state.inventory[it.charId]=(state.inventory[it.charId]||0)+1;});
@@ -844,8 +951,8 @@ function initGame(){const loaded=loadGame();if(!loaded){addToInventory('tralaler
 setInterval(()=>checkMutationEvent(),30000);
 checkMutationEvent();
 checkAchievements();}
-function renderBase(){const grid=document.getElementById('base-grid');grid.innerHTML='';document.getElementById('base-slot-count').textContent=`${state.base.length}/${state.baseSlots}`;for(let i=0;i<state.baseSlots;i++){const slot=document.createElement('div');slot.className='base-slot';const placed=state.base.find(b=>b.slot===i);if(placed){const ch=CHARACTERS.find(x=>x.id===placed.charId);if(!ch)continue;slot.classList.add('filled','border-'+ch.rarity);const muts=getMutations(ch.id,i);const mult=muts.reduce((m,mut)=>m*(mut?mut.mult:1.0),1.0);const displayRate=ch.rate*mult;const mutHtml=muts.length?muts.map(mut=>`<div style="font-size:7px;font-weight:700;color:${mut.color};text-shadow:0 0 6px ${mut.color};">${mut.name}</div>`).join(''):'';slot.innerHTML=`${svgChar(ch.id)}<div class="slot-name">${ch.name}</div><div class="slot-rate">${displayRate>=1000?fmtMoney(displayRate).replace('$','')+'/s':displayRate.toFixed(1)+'/s'}</div><div class="rarity-dot dot-${ch.rarity}"></div>${muts.length?`<div style="position:absolute;bottom:14px;left:0;right:0;text-align:center;">${mutHtml}</div>`:''}`;slot.onclick=()=>baseSlotClick(i,ch);}else{slot.innerHTML='<div style="font-size:24px;color:var(--muted)">＋</div><div style="font-size:9px;color:var(--muted)">配置</div>';slot.onclick=()=>openPlaceModal(i);}grid.appendChild(slot);}const btn=document.getElementById('expand-btn');if(state.baseSlots>=32){btn.textContent='🏰 上限に達した（MAX 32）';btn.disabled=true;}else{const cost=Math.floor(1.5e6*Math.pow(2,Math.floor((state.baseSlots-8)/4)));btn.textContent=`＋スロット追加 (${fmtMoney(cost)})`;btn.disabled=false;}}
-function expandBase(){if(state.baseSlots>=32){showToast('🏰 基地はこれ以上拡張できない！（MAX 32）');return;}const cost=Math.floor(1.5e6*Math.pow(2,Math.floor((state.baseSlots-8)/4)));if(state.money<cost){showToast('💰 お金が足りない！');return;}state.money-=cost;state.baseSlots+=4;renderBase();showToast('✅ スロットが4つ増えた！');checkAchievements();saveGame();}
+function renderBase(){const grid=document.getElementById('base-grid');grid.innerHTML='';document.getElementById('base-slot-count').textContent=`${state.base.length}/${state.baseSlots}`;for(let i=0;i<state.baseSlots;i++){const slot=document.createElement('div');slot.className='base-slot';const placed=state.base.find(b=>b.slot===i);if(placed){const ch=CHARACTERS.find(x=>x.id===placed.charId);if(!ch)continue;slot.classList.add('filled','border-'+ch.rarity);const muts=getMutations(ch.id,i);const mult=muts.reduce((m,mut)=>m*(mut?mut.mult:1.0),1.0);const displayRate=ch.rate*mult;const mutHtml=muts.length?muts.map(mut=>`<div style="font-size:7px;font-weight:700;color:${mut.color};text-shadow:0 0 6px ${mut.color};">${mut.name}</div>`).join(''):'';slot.innerHTML=`${svgChar(ch.id)}<div class="slot-name">${ch.name}</div><div class="slot-rate">${displayRate>=1000?fmtMoney(displayRate).replace('$','')+'/s':displayRate.toFixed(1)+'/s'}</div><div class="rarity-dot dot-${ch.rarity}"></div>${muts.length?`<div style="position:absolute;bottom:14px;left:0;right:0;text-align:center;">${mutHtml}</div>`:''}`;slot.onclick=()=>baseSlotClick(i,ch);}else{slot.innerHTML='<div style="font-size:24px;color:var(--muted)">＋</div><div style="font-size:9px;color:var(--muted)">配置</div>';slot.onclick=()=>openPlaceModal(i);}grid.appendChild(slot);}const btn=document.getElementById('expand-btn');if(state.baseSlots>=40){btn.textContent='🏰 上限に達した（MAX 40）';btn.disabled=true;}else{const cost=Math.floor(1.5e6*Math.pow(2,Math.floor((state.baseSlots-8)/4)));btn.textContent=`＋スロット追加 (${fmtMoney(cost)})`;btn.disabled=false;}}
+function expandBase(){if(state.baseSlots>=40){showToast('🏰 基地はこれ以上拡張できない！（MAX 40）');return;}const cost=Math.floor(1.5e6*Math.pow(2,Math.floor((state.baseSlots-8)/4)));if(state.money<cost){showToast('💰 お金が足りない！');return;}state.money-=cost;state.baseSlots+=4;renderBase();showToast('✅ スロットが4つ増えた！');checkAchievements();saveGame();}
 function baseSlotClick(slot,ch){openModal(`<div class="modal-header"><h3>🏰 ${ch.name}</h3><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body">${svgChar(ch.id)}<div class="mb-name">${ch.name}</div><div class="mb-rarity r-${ch.rarity}">${RARITIES[ch.rarity].label}</div><div class="mb-rate">${fmtRateSm(ch.rate)}</div><div class="mb-desc">${ch.desc}</div><div class="modal-actions"><button class="mact-btn mact-danger" onclick="removeFromBase(${slot})">🗑 撤退させる</button><button class="mact-btn mact-secondary" onclick="closeModal()">閉じる</button></div></div>`);}
 function removeFromBase(slot){const idx=state.base.findIndex(b=>b.slot===slot);if(idx!==-1){const b=state.base[idx];const ch=CHARACTERS.find(x=>x.id===b.charId);
 const muts=getMutations(b.charId,slot).map(m=>m.id);
@@ -1445,7 +1552,7 @@ function renderDivineFusion(){
   const divineChar=CHARACTERS.find(c=>c.id==='divineemperor');
   const DIVINE_COST=500e9; // 500B
   const NEED_SECRET=5;
-  const NEED_INDEX=53;
+  const NEED_INDEX=55;
   // 変異付きシークレット所持数
   const mutSecrets=state.invItems.filter(it=>it.charId==='omnisecret'&&it.muts&&it.muts.length>0);
   const secretCount=mutSecrets.length;
@@ -1454,7 +1561,7 @@ function renderDivineFusion(){
   const hasGold=state.money>=DIVINE_COST;
   const hasSecrets=secretCount>=NEED_SECRET;
   const hasIndex=discovered>=NEED_INDEX;
-  const canFuse=hasSecrets&&hasIndex&&hasGold&&!state.divineFused;
+  const canFuse=hasSecrets&&hasIndex&&hasGold;
   const secretSlots=Array.from({length:NEED_SECRET},(_,i)=>{
     const it=mutSecrets[i];
     const ok=!!it;
@@ -1485,7 +1592,7 @@ function renderDivineFusion(){
         <span style="font-size:14px">${hasGold?'✅':'❌'}</span>
         <span style="color:${hasGold?'#44ff88':'var(--muted)'}">$500B 所持（現在 ${fmtMoney(state.money)}）</span>
       </div>
-      ${state.divineFused?'<div style="font-size:10px;color:#ffd700;text-align:center;font-weight:900">✨ すでに神域皇帝を降臨済み ✨</div>':''}
+      ${''/* divineFused表示を削除 */}
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
       <div style="background:linear-gradient(135deg,#1a1200,#2a1a00);border:2px solid #ffd700;border-radius:10px;padding:8px;display:flex;align-items:center;gap:8px;flex:1;animation:divine-glow 1.5s ease-in-out infinite">
@@ -1508,9 +1615,8 @@ function executeDivineFusion(){
   const mutSecrets=state.invItems.filter(it=>it.charId==='omnisecret'&&it.muts&&it.muts.length>0);
   const discovered=state.discovered?state.discovered.size||[...state.discovered].length:0;
   if(mutSecrets.length<5){showToast('変異付きシークレットが5体必要！');return;}
-  if(discovered<53){showToast('図鑑を全て埋める必要があります！');return;}
+  if(discovered<55){showToast('図鑑を全て埋める必要があります！');return;}
   if(state.money<DIVINE_COST){showToast('$500B 必要！');return;}
-  if(state.divineFused){showToast('すでに神域皇帝を降臨済み！');return;}
   // 変異付きシークレット5体消費
   const use=mutSecrets.slice(0,5);
   const allMuts=[];
@@ -1545,7 +1651,7 @@ function executeDivineFusion(){
 // ===== DIVINE FUSION END =====
 function initQuests(){state.quests={};DAILY_QUESTS_DEF.forEach(q=>{state.quests[q.id]={progress:0,claimed:false};});}
 function checkQuestProgress(){if(!state.quests||Object.keys(state.quests).length===0)initQuests();let changed=false;DAILY_QUESTS_DEF.forEach(q=>{if(state.quests[q.id]?.claimed)return;let prog=state.quests[q.id]?.progress||0;let newProg=prog;if(q.type==='buy')newProg=Math.min(q.target,state.stats.totalBuys||0);if(q.type==='trade')newProg=Math.min(q.target,state.stats.totalTrades||0);if(q.type==='earn')newProg=Math.min(q.target,state.stats.totalEarned||0);if(q.type==='discover')newProg=Math.min(q.target,state.stats.sessionDiscovers||0);if(q.type==='base')newProg=Math.min(q.target,state.base.length||0);if(q.type==='fusion')newProg=Math.min(q.target,state.stats.totalFusions||0);if(newProg!==prog){state.quests[q.id].progress=newProg;changed=true;}});if(changed)renderQuests();updateQuestBadge();}
-function updateQuestBadge(){const claimable=DAILY_QUESTS_DEF.filter(q=>{const qs=state.quests[q.id];return qs&&!qs.claimed&&qs.progress>=q.target;}).length;const btn=document.getElementById('nav-quest');let badge=btn.querySelector('.quest-badge');if(claimable>0){if(!badge){badge=document.createElement('div');badge.className='quest-badge';btn.appendChild(badge);}badge.textContent=claimable;}else if(badge)badge.remove();}
+function updateQuestBadge(){/* クエストはナビバーから削除されたため何もしない */}
 function claimQuest(questId){const q=DAILY_QUESTS_DEF.find(x=>x.id===questId);if(!q)return;const qs=state.quests[questId];if(!qs||qs.claimed||qs.progress<q.target)return;qs.claimed=true;state.money+=q.reward;updateMoneyDisplays();renderQuests();updateQuestBadge();showToast(`🎁 ${q.name} 達成！ ${fmtMoney(q.reward)} 獲得！`);saveGame();}
 function renderQuests(){if(!state.quests||Object.keys(state.quests).length===0)initQuests();const div=document.getElementById('daily-quests');div.innerHTML='';DAILY_QUESTS_DEF.forEach(q=>{const qs=state.quests[q.id]||{progress:0,claimed:false};const prog=Math.min(qs.progress,q.target);const pct=Math.round(prog/q.target*100);const done=qs.claimed;const canClaim=!done&&prog>=q.target;const item=document.createElement('div');item.className='quest-item'+(done?' done':'');item.innerHTML=`<div class="quest-icon">${q.icon}</div><div class="quest-info"><div class="quest-name">${q.name}${done?' ✅':''}</div><div class="quest-desc">${q.desc}</div><div class="quest-progress"><div class="quest-bar" style="width:${pct}%"></div></div><div style="font-size:8px;color:var(--muted);margin-top:2px">${q.type==='earn'?fmtMoney(prog)+'/'+fmtMoney(q.target):prog+'/'+q.target}</div></div><div class="quest-reward">${fmtMoney(q.reward)}</div>${canClaim?`<button class="claim-btn" onclick="claimQuest('${q.id}')">受取</button>`:''}`;div.appendChild(item);});renderAchievements();}
 function checkAchievements(){let gained=false;ACHIEVEMENTS_DEF.forEach(a=>{if(!state.achievements.has(a.id)&&a.condition(state)){state.achievements.add(a.id);gained=true;showToast(`🏆 実績解除: ${a.name}`);}});if(gained){renderAchievements();saveGame();}}
@@ -1559,8 +1665,8 @@ allMutIds.forEach(mid=>{const mut=MUTATIONS[mid];const found=state.discoveredMut
 function openModal(html){document.getElementById('modal-content').innerHTML=html;document.getElementById('modal-overlay').style.display='flex';}
 function closeModal(e){if(e&&e.target!==document.getElementById('modal-overlay'))return;document.getElementById('modal-overlay').style.display='none';}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
-function showPage(name){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');document.getElementById('nav-'+name).classList.add('active');if(name==='inventory')renderInventory();if(name==='base')renderBase();if(name==='index')renderIndex();if(name==='trade'){renderTrade();renderCPUTrade();}if(name==='shop'){renderShop();renderMutLab();}if(name==='fusion')renderFusion();if(name==='quest'){renderQuests();renderAchievements();}if(name==='admin2')renderAdmin2();}
-function renderAll(){renderBase();renderShop();renderMutLab();renderInventory();renderIndex();renderTrade();renderCPUTrade();renderFusion();renderQuests();updateMoneyDisplays();updateTimerDisplay();checkQuestProgress();}
+function showPage(name){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');document.getElementById('nav-'+name).classList.add('active');if(name==='inventory')renderInventory();if(name==='base'){renderBase();renderQuests();}if(name==='index')renderIndex();if(name==='trade'){renderTrade();renderCPUTrade();}if(name==='shop'){renderShop();renderMutLab();}if(name==='fusion')renderFusion();if(name==='gacha')renderGacha();if(name==='admin2')renderAdmin2();}
+function renderAll(){renderBase();renderShop();renderMutLab();renderInventory();renderIndex();renderTrade();renderCPUTrade();renderFusion();renderQuests();renderAchievements();updateMoneyDisplays();updateTimerDisplay();checkQuestProgress();}
 
 // キャラ変異: state.mutations = { "charId_slotIndex": [mutationId, ...] } (複数対応)
 // 変異のチャンス: ショップで購入時1%、融合時70%(素材に変異がある場合)
@@ -1691,6 +1797,34 @@ function openAdminPanel(){
         </div>
       </div>
 
+      <div style="background:#13132a;border:1px solid #ffd700;border-radius:10px;padding:10px;">
+        <div style="font-size:11px;color:#ffd700;font-weight:700;margin-bottom:8px;">🎰 ガチャ管理</div>
+        <div style="font-size:9px;color:#6060aa;margin-bottom:6px;">ディバインキャラを直接付与、または天井カウンターを操作</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+          <button class="adm-btn adm-gold" onclick="adminGachaFree('divinephoenix')">🔥 神炎鳳凰付与</button>
+          <button class="adm-btn" style="border-color:#cc44ff;color:#cc44ff" onclick="adminGachaFree('divinedemon')">🌑 魔神大帝付与</button>
+        </div>
+        <div style="font-size:9px;color:#6060aa;margin-bottom:4px;">天井カウンター設定</div>
+        <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center">
+          <span style="font-size:9px;color:#ff6600;white-space:nowrap">鳳凰(max150):</span>
+          <input id="adm-pity1" type="number" value="0" min="0" max="150" style="width:52px;background:#1a1a35;border:1px solid #2a2a50;color:#e0e0ff;border-radius:6px;padding:4px;font-size:11px;outline:none;text-align:center">
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+          <span style="font-size:9px;color:#cc44ff;white-space:nowrap">大帝(max200):</span>
+          <input id="adm-pity2" type="number" value="0" min="0" max="200" style="width:52px;background:#1a1a35;border:1px solid #2a2a50;color:#e0e0ff;border-radius:6px;padding:4px;font-size:11px;outline:none;text-align:center">
+        </div>
+        <button class="adm-btn adm-gold" style="width:100%" onclick="adminGachaSetPity(+document.getElementById('adm-pity1').value,+document.getElementById('adm-pity2').value)">🎰 天井カウンターを設定</button>
+        <div style="margin-top:6px;font-size:9px;color:#6060aa">
+          現在: 鳳凰天井 <span id="adm-pity1-cur" style="color:#ff6600">0</span> / 魔神天井 <span id="adm-pity2-cur" style="color:#cc44ff">0</span>
+          <button onclick="(()=>{initGachaState();document.getElementById('adm-pity1-cur').textContent=state.gachaPity1;document.getElementById('adm-pity2-cur').textContent=state.gachaPity2;})()" style="background:transparent;border:none;color:#00ffcc;font-size:8px;cursor:pointer">更新</button>
+        </div>
+        <div style="margin-top:8px;font-size:9px;color:#6060aa;font-weight:700">○% 確定付与</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px">
+          <button class="adm-btn" onclick="(()=>{for(let i=0;i<10;i++)executeGacha(1);showToast('🎰 10連ガチャ実行（無料）');})()" style="border-color:#ffd700;color:#ffd700">無料10連</button>
+          <button class="adm-btn" onclick="(()=>{state.money+=1e15;updateMoneyDisplays();showToast('💰 $1Qa追加！');saveGame();})()" style="border-color:#00ffcc;color:#00ffcc">$1Qa追加</button>
+        </div>
+      </div>
+
       <div style="background:#13132a;border:1px solid #2a2a50;border-radius:10px;padding:10px;">
         <div style="font-size:11px;color:#6060aa;font-weight:700;margin-bottom:8px;">🎁 キャラ付与 + 変異設定</div>
         <div style="margin-bottom:6px;">
@@ -1784,9 +1918,137 @@ function adminGiveChar(){
 function adminGiveAll(rarity){CHARACTERS.filter(c=>c.rarity===rarity).forEach(c=>addToInventory(c.id));renderInventory();calcRate();showToast('🎁 全'+rarity+'付与！');checkAchievements();saveGame();}
 function adminGiveRandom(n){for(let i=0;i<n;i++){const ch=CHARACTERS[Math.floor(Math.random()*CHARACTERS.length)];addToInventory(ch.id);}renderInventory();calcRate();showToast('🎁 ランダム'+n+'体付与！');checkAchievements();saveGame();}
 function adminRefreshShop(){refreshShop();state.shopTimer=180;updateTimerDisplay();showToast('🛒 ショップ更新！');}
+// ===== GACHA SYSTEM =====
+const GACHA_COST = 100e9; // 100B
+const GACHA_PITY1_MAX = 150; // 神炎鳳凰 天井
+const GACHA_PITY2_MAX = 200; // 魔神大帝 天井
+
+function initGachaState(){
+  if(!state.gachaPity1) state.gachaPity1 = 0;
+  if(!state.gachaPity2) state.gachaPity2 = 0;
+}
+
+function renderGacha(){
+  initGachaState();
+  const el1 = document.getElementById('gacha-pity1-display');
+  const el2 = document.getElementById('gacha-pity2-display');
+  if(el1) el1.textContent = `${state.gachaPity1} / ${GACHA_PITY1_MAX}`;
+  if(el2) el2.textContent = `${state.gachaPity2} / ${GACHA_PITY2_MAX}`;
+  const btn1 = document.getElementById('gacha-btn-1');
+  const btn10 = document.getElementById('gacha-btn-10');
+  if(btn1){ const can=state.money>=GACHA_COST; btn1.style.opacity=can?'1':'0.5'; btn1.disabled=!can; }
+  if(btn10){ const can=state.money>=GACHA_COST*10; btn10.style.opacity=can?'1':'0.5'; btn10.disabled=!can; }
+  const rdp = document.getElementById('rate-display-gacha');
+  if(rdp) rdp.textContent = fmtRate(state.rate);
+}
+
+function gachaRoll(){
+  // ランダム抽選
+  const r = Math.random() * 100;
+  // 0.1% 魔神大帝
+  // 3% 神炎鳳凰
+  // 2% スーパーミシック
+  // 15% ミシック
+  // 30% レジェンド
+  // 50% エピック
+  if(r < 0.1) return 'divinedemon';
+  if(r < 3.1) return 'divinephoenix';
+  if(r < 5.1){
+    const pool = CHARACTERS.filter(c=>c.rarity==='supermythic');
+    return pool[Math.floor(Math.random()*pool.length)].id;
+  }
+  if(r < 20.1){
+    const pool = CHARACTERS.filter(c=>c.rarity==='mythic');
+    return pool[Math.floor(Math.random()*pool.length)].id;
+  }
+  if(r < 50.1){
+    const pool = CHARACTERS.filter(c=>c.rarity==='legendary');
+    return pool[Math.floor(Math.random()*pool.length)].id;
+  }
+  const pool = CHARACTERS.filter(c=>c.rarity==='epic');
+  return pool[Math.floor(Math.random()*pool.length)].id;
+}
+
+function executeGacha(times){
+  initGachaState();
+  const totalCost = GACHA_COST * times;
+  if(state.money < totalCost){ showToast('💰 お金が足りない！'); return; }
+  state.money -= totalCost;
+  updateMoneyDisplays();
+  const results = [];
+  for(let i=0; i<times; i++){
+    state.gachaPity1++;
+    state.gachaPity2++;
+    let charId = gachaRoll();
+    // 天井チェック: pity1=150で神炎鳳凰確定
+    if(state.gachaPity1 >= GACHA_PITY1_MAX && charId !== 'divinephoenix' && charId !== 'divinedemon'){
+      charId = 'divinephoenix';
+      state.gachaPity1 = 0;
+    }
+    // 天井チェック: pity2=200で魔神大帝確定
+    if(state.gachaPity2 >= GACHA_PITY2_MAX && charId !== 'divinedemon'){
+      charId = 'divinedemon';
+      state.gachaPity2 = 0;
+    }
+    // ディバインが出たらリセット
+    if(charId === 'divinephoenix') state.gachaPity1 = 0;
+    if(charId === 'divinedemon') state.gachaPity2 = 0;
+    addToInventory(charId);
+    results.push(charId);
+  }
+  renderInventory(); calcRate(); checkAchievements(); saveGame();
+  renderGacha();
+  // 結果表示
+  showGachaResults(results);
+}
+
+function showGachaResults(results){
+  const area = document.getElementById('gacha-result-area');
+  if(!area) return;
+  const isDivine = results.some(id => id==='divinephoenix'||id==='divinedemon');
+  const sorted = [...results].sort((a,b)=>{
+    const order = ['divinedemon','divinephoenix','omnisecret','abyssking','voidgod','omegaboss','cosmicbrain'];
+    return (order.indexOf(a) >= 0 ? order.indexOf(a) : 999) - (order.indexOf(b) >= 0 ? order.indexOf(b) : 999);
+  });
+  area.innerHTML = `
+    <div style="background:${isDivine?'linear-gradient(135deg,#0a0800,#1a0030)':'var(--card)'};border:2px solid ${isDivine?'#ffd700':'var(--border)'};border-radius:12px;padding:10px;margin-top:4px">
+      <div style="font-size:11px;font-weight:900;color:${isDivine?'#ffd700':'var(--muted)'};margin-bottom:8px;text-align:center">${isDivine?'✨ ディバイン降臨！ ✨':'🎰 ガチャ結果'}</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+        ${sorted.map(id=>{
+          const ch=CHARACTERS.find(c=>c.id===id);
+          if(!ch)return '';
+          const isDv=ch.rarity==='divine';
+          return `<div style="background:${isDv?'rgba(255,215,0,0.15)':'var(--panel)'};border:1.5px solid ${isDv?'#ffd700':'var(--border)'};border-radius:8px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;${isDv?'animation:divine-glow 1.5s ease-in-out infinite':''};text-align:center">
+            <div style="width:40px;height:40px">${svgChar(id)}</div>
+            <div style="font-size:7px;font-weight:700;line-height:1.2" class="r-${ch.rarity}">${ch.name}</div>
+            <div style="font-size:6px;font-weight:900" class="r-${ch.rarity}">${RARITIES[ch.rarity]?.label?.substring(0,4)||'???'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function adminGachaFree(charId){
+  // 管理者: 無料でガチャキャラを付与
+  addToInventory(charId);
+  renderInventory(); calcRate(); checkAchievements(); saveGame();
+  const ch=CHARACTERS.find(c=>c.id===charId);
+  showToast('🎁 '+(ch?ch.name:charId)+' を付与！');
+}
+
+function adminGachaSetPity(p1, p2){
+  initGachaState();
+  if(p1 !== null) state.gachaPity1 = parseInt(p1) || 0;
+  if(p2 !== null) state.gachaPity2 = parseInt(p2) || 0;
+  renderGacha();
+  showToast('🎰 天井カウンター変更！');
+  saveGame();
+}
+// ===== GACHA SYSTEM END =====
+
 function adminCompleteQuests(){DAILY_QUESTS_DEF.forEach(q=>{if(!state.quests[q.id])state.quests[q.id]={progress:0,claimed:false};state.quests[q.id].progress=q.target;});renderQuests();updateQuestBadge();showToast('📋 全クエスト達成！');}
 function adminUnlockAch(){ACHIEVEMENTS_DEF.forEach(a=>state.achievements.add(a.id));renderAchievements();showToast('🏆 全実績解除！');saveGame();}
-function adminMaxBase(){state.baseSlots=32;renderBase();showToast('🏰 基地MAX！');checkAchievements();saveGame();}
+function adminMaxBase(){state.baseSlots=40;renderBase();showToast('🏰 基地MAX！');checkAchievements();saveGame();}
 function adminClearBase(){state.base.forEach(b=>addToInventory(b.charId));state.base=[];if(!state.mutations)state.mutations={};state.mutations={};calcRate();renderBase();renderInventory();showToast('🗑 基地クリア');saveGame();}
 function adminClearInventory(){state.inventory={};renderInventory();calcRate();showToast('🗑 所持品クリア');saveGame();}
 
